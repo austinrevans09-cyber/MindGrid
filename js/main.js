@@ -2,7 +2,16 @@
 // MindGrid - Main JavaScript
 
 console.log("MindGrid successfully loaded!");
+// Check whether the user is logged in
+async function checkAuthentication() {
+    const { data, error } = await supabaseClient.auth.getSession();
 
+    if (error || !data.session) {
+        window.location.replace("login.html");
+    }
+}
+
+checkAuthentication();
 // We will add the following here later:
 // - Supabase connection
 // - User authentication
