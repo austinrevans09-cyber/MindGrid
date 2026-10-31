@@ -1,0 +1,251 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Day & Night | MindGrid</title>
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/games.css">
+</head>
+
+<body class="game-page">
+
+    <header class="navbar">
+        <a href="../index.html" class="logo">
+            <span class="logo-icon">M</span>
+            MINDGRID
+        </a>
+
+        <a href="../index.html" class="nav-button">Exit Game</a>
+    </header>
+
+    <main class="game-container">
+
+        <section id="setup-screen" class="game-panel">
+
+            <span class="eyebrow">MINDGRID GAME LIBRARY</span>
+            <h1>Day & Night</h1>
+
+            <p class="game-description">
+                Learn to recognise probabilities and make predictions
+                based on the information available to you.
+            </p>
+
+            <div class="mode-options">
+
+                <button class="mode-card selected" data-mode="learning">
+                    <span class="mode-icon">📚</span>
+                    <h3>Learning Mode</h3>
+                    <p>See probability information and receive feedback.</p>
+                </button>
+
+                <button class="mode-card" data-mode="practice">
+                    <span class="mode-icon">🎯</span>
+                    <h3>Practice Mode</h3>
+                    <p>Make predictions without seeing the probabilities.</p>
+                </button>
+
+                <button class="mode-card" data-mode="assessment">
+                    <span class="mode-icon">⏱</span>
+                    <h3>Assessment Mode</h3>
+                    <p>Complete a timed assessment without hints.</p>
+                </button>
+
+            </div>
+
+           	
+<div class="game-settings">
+
+    <div>
+        <label for="round-count">Number of rounds</label>
+        <select id="round-count">
+            <option value="10">10 rounds</option>
+            <option value="20" selected>20 rounds</option>
+            <option value="30">30 rounds</option>
+        </select>
+    </div>
+
+    <div>
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty">
+            <option value="easy">Easy</option>
+            <option value="normal" selected>Normal</option>
+            <option value="hard">Hard</option>
+        </select>
+    </div>
+
+</div>
+
+<label class="sound-option">
+    <input type="checkbox" id="sound-enabled" checked>
+    Enable sound effects
+</label>
+
+
+            <button id="start-game" class="primary-button start-button">
+                Start Game →
+            </button>
+
+        </section>
+
+
+        <section id="playing-screen" class="game-panel hidden">
+
+            <div class="game-top-bar">
+                <div>
+                    <span class="game-category">DAY & NIGHT</span>
+                    <h2 id="mode-title">Learning Mode</h2>
+                </div>
+
+                <div class="game-score">
+                    <span>SCORE</span>
+                    <strong id="score">0</strong>
+                </div>
+            </div>
+
+<div class="progress-information">
+    <span id="round-number">ROUND 1 / 20</span>
+    <span id="timer">00:00 elapsed</span>
+</div>
+
+<div id="round-timer" class="round-timer"></div>
+
+
+
+            <div class="progress-track">
+                <div id="progress-bar"></div>
+            </div>
+
+            <div class="symbol-area">
+
+                <h2>What is your prediction?</h2>
+
+                <div class="symbol-pair">
+
+                    <div class="symbol-card">
+                        <span id="symbol-one">☀</span>
+                    </div>
+
+                    <span class="symbol-plus">+</span>
+
+                    <div class="symbol-card">
+                        <span id="symbol-two">★</span>
+                    </div>
+
+                </div>
+
+                <p id="combination-name">Combination A</p>
+
+            </div>
+
+            <div id="probability-information" class="probability-box">
+                <span>PROBABILITY INFORMATION</span>
+                <div class="probability-values">
+                    <div>
+                        <strong id="day-probability">70%</strong>
+                        <span>DAY</span>
+                    </div>
+
+                    <div>
+                        <strong id="night-probability">30%</strong>
+                        <span>NIGHT</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="prediction-buttons">
+
+                <button id="predict-day" class="prediction-button day-button">
+                    <span>☀</span>
+                    <strong>DAY</strong>
+                    <small>Press 1</small>
+                </button>
+
+                <button id="predict-night" class="prediction-button night-button">
+                    <span>☾</span>
+                    <strong>NIGHT</strong>
+                    <small>Press 2</small>
+                </button>
+
+            </div>
+
+            <div id="feedback" class="feedback hidden">
+                <h3 id="feedback-title">Correct!</h3>
+                <p id="feedback-message"></p>
+                <button id="next-round" class="primary-button">
+                    Next Round →
+                </button>
+            </div>
+
+            <p class="game-instructions" id="game-instructions">
+                Select the outcome you believe is most likely.
+            </p>
+
+        </section>
+
+
+        <section id="results-screen" class="game-panel hidden">
+
+            <span class="eyebrow">GAME COMPLETE</span>
+
+            <h1>Challenge completed!</h1>
+
+            <p class="game-description">
+                Here's how you performed.
+            </p>
+
+            <div class="result-main">
+                <span>YOUR SCORE</span>
+                <h2 id="final-score">0</h2>
+                <p id="final-percentage">0% accuracy</p>
+            </div>
+
+            <div class="result-grid">
+
+                <div class="result-stat">
+                    <strong id="correct-count">0</strong>
+                    <span>Correct</span>
+                </div>
+
+                <div class="result-stat">
+                    <strong id="incorrect-count">0</strong>
+                    <span>Incorrect</span>
+                </div>
+
+                <div class="result-stat">
+                    <strong id="average-time">0s</strong>
+                    <span>Average response</span>
+                </div>
+
+                <div class="result-stat">
+                    <strong id="best-streak">0</strong>
+                    <span>Best streak</span>
+                </div>
+
+            </div>
+
+            <div id="review-area" class="review-area">
+                <h3>Combination review</h3>
+                <p>Your results for each symbol combination will appear here.</p>
+                <div id="combination-review"></div>
+            </div>
+
+            <div class="results-buttons">
+                <button id="retry-game" class="primary-button">
+                    Play Again
+                </button>
+
+                <a href="../index.html" class="secondary-button">
+                    Return Home
+                </a>
+            </div>
+
+        </section>
+
+    </main>
+
+    <script src="../js/games/day-night.js"></script>
+
+</body>
+</html>
