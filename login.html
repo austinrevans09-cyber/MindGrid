@@ -1,0 +1,70 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Login | MindGrid</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/auth.css">
+</head>
+
+<body>
+
+    <main class="auth-container">
+
+        <div class="auth-card">
+
+            <a href="index.html" class="auth-logo">MindGrid</a>
+
+            <h1>Welcome back</h1>
+            <p class="auth-subtitle">
+                Sign in to continue your assessment practice.
+            </p>
+
+            <form id="login-form">
+
+                <label for="email">Email address</label>
+                <input
+                    type="email"
+                    id="email"
+                    placeholder="you@example.com"
+                    required
+                >
+
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    placeholder="Enter your password"
+                    required
+                >
+
+                <button type="submit" id="login-button">
+                    Sign in
+                </button>
+
+            </form>
+
+            <p id="auth-message" role="status"></p>
+
+            <button type="button" id="forgot-password" class="text-button">
+                Forgot your password?
+            </button>
+
+            <p class="auth-footer">
+                Don't have an account? MindGrid is invitation-only.
+            </p>
+
+        </div>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+
+</body>
+</html>
