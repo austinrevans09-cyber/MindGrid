@@ -1,28 +1,7 @@
 // ============================================
-// MINDGRID - DAY & NIGHT VERSION 2
+// MINDGRID - DAY & NIGHT VERSION 3
 // Randomised probability-learning game
 // ============================================
-
-// ============================================
-// CHECK AUTHENTICATION
-// ============================================
-
-async function checkGameAuthentication() {
-
-    const loadingScreen = document.getElementById("auth-loading");
-
-    const { data, error } = await supabaseClient.auth.getSession();
-
-    if (error || !data.session) {
-        window.location.replace("../login.html");
-        return;
-    }
-
-    // User is authenticated, remove the loading screen
-    if (loadingScreen) {
-        loadingScreen.remove();
-    }
-}
 
 // ELEMENTS
 
@@ -47,14 +26,12 @@ const difficultySettings = {
         minProbability: 0.12,
         maxProbability: 0.88
     },
-
     normal: {
         combinations: 10,
         timeLimit: 5,
         minProbability: 0.20,
         maxProbability: 0.80
     },
-
     hard: {
         combinations: 12,
         timeLimit: 3,
@@ -120,16 +97,13 @@ function randomNumber(min, max) {
 
 
 function shuffleArray(array) {
-
     const shuffled = [...array];
 
     for (let i = shuffled.length - 1; i > 0; i--) {
-
         const j = Math.floor(Math.random() * (i + 1));
 
         [shuffled[i], shuffled[j]] =
             [shuffled[j], shuffled[i]];
-
     }
 
     return shuffled;
@@ -141,83 +115,54 @@ function shuffleArray(array) {
 // ============================================
 
 function generateCombinations() {
-
     combinations = [];
-
     combinationStats = {};
 
     const settings =
         difficultySettings[selectedDifficulty];
 
-    // Generate every possible unique pair.
-
     const possiblePairs = [];
 
     for (let i = 0; i < symbolLibrary.length; i++) {
-
         for (let j = i + 1; j < symbolLibrary.length; j++) {
-
             possiblePairs.push({
                 symbolOne: symbolLibrary[i],
                 symbolTwo: symbolLibrary[j]
             });
-
         }
-
     }
 
-    // Shuffle all possible pairs.
-
     const shuffledPairs = shuffleArray(possiblePairs);
-
-    // Select the required number of combinations.
 
     const selectedPairs =
         shuffledPairs.slice(0, settings.combinations);
 
     selectedPairs.forEach((pair, index) => {
-
         const probability = randomNumber(
             settings.minProbability,
             settings.maxProbability
         );
 
         const combination = {
-
             id: index + 1,
-
             name: "Combination " + (index + 1),
-
             symbolOne: pair.symbolOne,
-
             symbolTwo: pair.symbolTwo,
-
             dayProbability: Number(probability.toFixed(2))
-
         };
 
         combinations.push(combination);
 
         combinationStats[combination.name] = {
-
             attempts: 0,
-
             correct: 0,
-
             dayAttempts: 0,
-
             nightAttempts: 0,
-
             dayCorrect: 0,
-
             nightCorrect: 0,
-
             totalResponseTime: 0
-
         };
-
     });
-
 }
 
 
@@ -226,24 +171,16 @@ function generateCombinations() {
 // ============================================
 
 function createRoundDeck() {
-
     roundDeck = shuffleArray(combinations);
-
 }
 
 
 function selectNextCombination() {
-
-    // Reshuffle once every combination has appeared.
-
     if (roundDeck.length === 0) {
-
         createRoundDeck();
-
     }
 
     return roundDeck.pop();
-
 }
 
 
@@ -252,7 +189,6 @@ function selectNextCombination() {
 // ============================================
 
 function playSound(type) {
-
     if (!soundEnabled) return;
 
     const AudioContext =
@@ -261,13 +197,10 @@ function playSound(type) {
     if (!AudioContext) return;
 
     const context = new AudioContext();
-
     const oscillator = context.createOscillator();
-
     const gain = context.createGain();
 
     oscillator.connect(gain);
-
     gain.connect(context.destination);
 
     if (type === "correct") {
@@ -288,11 +221,9 @@ function playSound(type) {
     );
 
     oscillator.start();
-
     oscillator.stop(context.currentTime + 0.2);
 
     oscillator.onended = () => context.close();
-
 }
 
 
@@ -301,29 +232,24 @@ function playSound(type) {
 // ============================================
 
 document.querySelectorAll(".mode-card").forEach(button => {
-
     button.addEventListener("click", () => {
-
         document.querySelectorAll(".mode-card").forEach(card => {
             card.classList.remove("selected");
         });
 
         button.classList.add("selected");
-
         selectedMode = button.dataset.mode;
-
     });
-
 });
 
 
+// ============================================
 // SOUND SETTING
+// ============================================
 
 document.getElementById("sound-enabled")
     .addEventListener("change", event => {
-
         soundEnabled = event.target.checked;
-
     });
 
 
@@ -335,7 +261,6 @@ startButton.addEventListener("click", startGame);
 
 
 function startGame() {
-
     clearInterval(timerInterval);
     clearInterval(countdownInterval);
 
@@ -356,19 +281,14 @@ function startGame() {
     bestStreak = 0;
 
     totalResponseTime = 0;
-
     roundResults = [];
-
     answered = false;
 
     generateCombinations();
-
     createRoundDeck();
 
     setupScreen.classList.add("hidden");
-
     resultsScreen.classList.add("hidden");
-
     playingScreen.classList.remove("hidden");
 
     document.getElementById("mode-title").textContent =
@@ -382,7 +302,6 @@ function startGame() {
     timerInterval = setInterval(updateSessionTimer, 250);
 
     startNextRound();
-
 }
 
 
@@ -391,19 +310,16 @@ function startGame() {
 // ============================================
 
 function updateSessionTimer() {
-
     const elapsed = Math.floor(
         (Date.now() - startTime) / 1000
     );
 
     const minutes = Math.floor(elapsed / 60);
-
     const seconds = elapsed % 60;
 
     document.getElementById("timer").textContent =
         String(minutes).padStart(2, "0") + ":" +
         String(seconds).padStart(2, "0") + " elapsed";
-
 }
 
 
@@ -412,19 +328,14 @@ function updateSessionTimer() {
 // ============================================
 
 function startNextRound() {
-
     clearInterval(countdownInterval);
 
     if (currentRound >= totalRounds) {
-
         endGame();
-
         return;
-
     }
 
     currentRound++;
-
     answered = false;
 
     document.getElementById("feedback").classList.add("hidden");
@@ -440,11 +351,9 @@ function startNextRound() {
     document.getElementById("progress-bar").style.width =
         `${((currentRound - 1) / totalRounds) * 100}%`;
 
-
     // Select a combination using the shuffled deck.
 
     currentCombination = selectNextCombination();
-
 
     // Generate the actual outcome independently.
 
@@ -453,9 +362,7 @@ function startNextRound() {
             ? "day"
             : "night";
 
-
-    // Randomise symbol display order without changing
-    // the underlying combination.
+    // Randomise symbol display order.
 
     const reversed = Math.random() < 0.5;
 
@@ -469,10 +376,8 @@ function startNextRound() {
             ? currentCombination.symbolOne
             : currentCombination.symbolTwo;
 
-
     document.getElementById("combination-name").textContent =
         currentCombination.name;
-
 
     // Probability information.
 
@@ -480,7 +385,6 @@ function startNextRound() {
         document.getElementById("probability-information");
 
     if (selectedMode === "learning") {
-
         probabilityBox.classList.remove("hidden");
 
         const dayChance =
@@ -493,13 +397,9 @@ function startNextRound() {
 
         document.getElementById("night-probability").textContent =
             nightChance + "%";
-
     } else {
-
         probabilityBox.classList.add("hidden");
-
     }
-
 
     // Instructions.
 
@@ -508,23 +408,19 @@ function startNextRound() {
             ? "Make your prediction before the countdown expires."
             : "Select the outcome you believe is most likely.";
 
-
     roundStartTime = Date.now();
 
     document.getElementById("round-timer").textContent = "";
 
-
     // Assessment countdown.
 
     if (selectedMode === "assessment") {
-
         const timeLimit =
             difficultySettings[selectedDifficulty].timeLimit;
 
         let deadline = Date.now() + timeLimit * 1000;
 
         function updateCountdown() {
-
             const remaining =
                 Math.max(0, (deadline - Date.now()) / 1000);
 
@@ -532,21 +428,18 @@ function startNextRound() {
                 remaining.toFixed(1) + " seconds remaining";
 
             if (remaining <= 0 && !answered) {
-
                 clearInterval(countdownInterval);
-
                 submitPrediction("timeout");
-
             }
-
         }
 
         updateCountdown();
 
         countdownInterval = setInterval(updateCountdown, 100);
-
     }
 
+    // Hide the Next Round button until the player has answered.
+    nextButton.classList.add("hidden");
 }
 
 
@@ -563,22 +456,48 @@ nightButton.addEventListener("click", () => {
 });
 
 
-document.addEventListener("keydown", event => {
+// Keyboard controls:
+// 1 = predict Day
+// 2 = predict Night
+// Space = next round after feedback
 
+document.addEventListener("keydown", event => {
     if (playingScreen.classList.contains("hidden")) return;
 
-    if (answered) return;
+    // Do not interfere with typing or form controls.
 
+    const activeElement = document.activeElement;
+
+    const isTyping = activeElement && (
+        activeElement.tagName === "INPUT" ||
+        activeElement.tagName === "TEXTAREA" ||
+        activeElement.tagName === "SELECT" ||
+        activeElement.isContentEditable
+    );
+
+    if (isTyping) return;
     if (event.repeat) return;
 
-    if (event.key === "1") {
+    // Number keys select Day and Night.
+
+    if (!answered && event.key === "1") {
+        event.preventDefault();
         submitPrediction("day");
+        return;
     }
 
-    if (event.key === "2") {
+    if (!answered && event.key === "2") {
+        event.preventDefault();
         submitPrediction("night");
+        return;
     }
 
+    // Space advances after feedback in all three modes.
+
+    if (event.code === "Space" && answered) {
+        event.preventDefault();
+        nextButton.click();
+    }
 });
 
 
@@ -587,7 +506,6 @@ document.addEventListener("keydown", event => {
 // ============================================
 
 function submitPrediction(prediction) {
-
     if (answered) return;
 
     answered = true;
@@ -604,9 +522,7 @@ function submitPrediction(prediction) {
         (Date.now() - roundStartTime) / 1000;
 
     if (prediction === "timeout") {
-
         responseTime = timeLimit;
-
     }
 
     totalResponseTime += responseTime;
@@ -618,28 +534,19 @@ function submitPrediction(prediction) {
         combinationStats[currentCombination.name];
 
     stats.attempts++;
-
     stats.totalResponseTime += responseTime;
 
     if (currentOutcome === "day") {
-
         stats.dayAttempts++;
-
     } else {
-
         stats.nightAttempts++;
-
     }
 
-
     if (wasCorrect) {
-
         correct++;
-
         score += 100;
 
         streak++;
-
         bestStreak = Math.max(bestStreak, streak);
 
         stats.correct++;
@@ -651,55 +558,30 @@ function submitPrediction(prediction) {
         }
 
         playSound("correct");
-
     } else {
-
         incorrect++;
-
         streak = 0;
 
         playSound("incorrect");
-
     }
 
-
     roundResults.push({
-
         combination: currentCombination.name,
-
         prediction: prediction,
-
         outcome: currentOutcome,
-
         correct: wasCorrect,
-
         probability: currentCombination.dayProbability,
-
         responseTime: responseTime
-
     });
-
 
     document.getElementById("score").textContent = score;
 
+    // All modes now show feedback after each answer.
+    // Assessment feedback does not reveal probability.
 
-    // Assessment mode: no feedback between rounds.
-
-    if (selectedMode === "assessment") {
-
-        document.getElementById("round-timer").textContent = "";
-
-        setTimeout(startNextRound, 250);
-
-        return;
-
-    }
-
-
-    // Learning and practice modes.
+    document.getElementById("round-timer").textContent = "";
 
     showFeedback(prediction, wasCorrect);
-
 }
 
 
@@ -708,7 +590,6 @@ function submitPrediction(prediction) {
 // ============================================
 
 function showFeedback(prediction, wasCorrect) {
-
     const feedback =
         document.getElementById("feedback");
 
@@ -721,35 +602,32 @@ function showFeedback(prediction, wasCorrect) {
     feedback.classList.remove("hidden");
 
     if (wasCorrect) {
-
         title.textContent = "Correct prediction!";
-
         title.style.color = "#56D69B";
-
     } else {
-
         title.textContent = "Not quite!";
-
         title.style.color = "#FF8585";
-
     }
-
 
     message.textContent =
-        `You predicted ${prediction.toUpperCase()}. ` +
-        `The actual outcome was ${currentOutcome.toUpperCase()}. ` +
-        `This combination has a ` +
-        `${Math.round(currentCombination.dayProbability * 100)}% ` +
-        `chance of producing Day.`;
+        `You predicted ${prediction === "timeout" ? "no answer" : prediction.toUpperCase()}. ` +
+        `The actual outcome was ${currentOutcome.toUpperCase()}.`;
 
+    // Only Learning and Practice reveal probability information.
 
-    if (selectedMode === "learning") {
-
+    if (selectedMode !== "assessment") {
         message.textContent +=
-            " Use this information to guide your next prediction.";
-
+            ` This combination has a ${Math.round(currentCombination.dayProbability * 100)}% chance of producing Day.`;
     }
 
+    if (selectedMode === "learning") {
+        message.textContent +=
+            " Use this information to guide your next prediction.";
+    }
+
+    // Show the Next Round button after feedback.
+
+    nextButton.classList.remove("hidden");
 }
 
 
@@ -765,13 +643,10 @@ nextButton.addEventListener("click", startNextRound);
 // ============================================
 
 function endGame() {
-
     clearInterval(timerInterval);
-
     clearInterval(countdownInterval);
 
     playingScreen.classList.add("hidden");
-
     resultsScreen.classList.remove("hidden");
 
     const elapsed =
@@ -804,9 +679,7 @@ function endGame() {
     document.getElementById("progress-bar").style.width = "100%";
 
     displayCombinationReview();
-
     displayOutcomeStatistics();
-
 }
 
 
@@ -815,14 +688,12 @@ function endGame() {
 // ============================================
 
 function displayCombinationReview() {
-
     const review =
         document.getElementById("combination-review");
 
     review.innerHTML = "";
 
     combinations.forEach(combination => {
-
         const stats =
             combinationStats[combination.name];
 
@@ -833,7 +704,6 @@ function displayCombinationReview() {
             : 0;
 
         const row = document.createElement("div");
-
         row.className = "review-row";
 
         const name = document.createElement("span");
@@ -849,13 +719,10 @@ function displayCombinationReview() {
             `${accuracy}% (${stats.correct}/${stats.attempts})`;
 
         row.appendChild(name);
-
         row.appendChild(result);
 
         review.appendChild(row);
-
     });
-
 }
 
 
@@ -864,7 +731,6 @@ function displayCombinationReview() {
 // ============================================
 
 function displayOutcomeStatistics() {
-
     const review =
         document.getElementById("combination-review");
 
@@ -875,17 +741,12 @@ function displayOutcomeStatistics() {
     let nightCorrect = 0;
 
     Object.values(combinationStats).forEach(stats => {
-
         dayAttempts += stats.dayAttempts;
-
         dayCorrect += stats.dayCorrect;
 
         nightAttempts += stats.nightAttempts;
-
         nightCorrect += stats.nightCorrect;
-
     });
-
 
     const dayAccuracy = dayAttempts > 0
         ? Math.round((dayCorrect / dayAttempts) * 100)
@@ -895,15 +756,12 @@ function displayOutcomeStatistics() {
         ? Math.round((nightCorrect / nightAttempts) * 100)
         : 0;
 
-
     const heading = document.createElement("h3");
 
     heading.textContent = "Outcome accuracy";
-
     heading.style.marginTop = "25px";
 
     review.appendChild(heading);
-
 
     const result = document.createElement("p");
 
@@ -914,7 +772,6 @@ function displayOutcomeStatistics() {
         `Night: ${nightAccuracy}% (${nightCorrect}/${nightAttempts})`;
 
     review.appendChild(result);
-
 }
 
 
@@ -923,16 +780,41 @@ function displayOutcomeStatistics() {
 // ============================================
 
 retryButton.addEventListener("click", () => {
-
     clearInterval(timerInterval);
-
     clearInterval(countdownInterval);
 
     resultsScreen.classList.add("hidden");
-
     setupScreen.classList.remove("hidden");
-
 });
 
-// Check authentication before allowing access
+
+// ============================================
+// AUTHENTICATION CHECK
+// ============================================
+
+async function checkGameAuthentication() {
+    const loadingScreen =
+        document.getElementById("auth-loading");
+
+    try {
+        const { data, error } =
+            await supabaseClient.auth.getSession();
+
+        if (error || !data.session) {
+            window.location.replace("../login.html");
+            return;
+        }
+
+        // The user is logged in, so reveal the game.
+
+        if (loadingScreen) {
+            loadingScreen.remove();
+        }
+
+    } catch (error) {
+        console.error("Authentication check failed:", error);
+        window.location.replace("../login.html");
+    }
+}
+
 checkGameAuthentication();
