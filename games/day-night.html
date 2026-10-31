@@ -10,7 +10,18 @@
 </head>
 
 <body class="game-page">
-
+	<div id="auth-loading" style="
+    		position: fixed;
+    		inset: 0;
+    		z-index: 9999;
+    		background: #101827;
+    		display: flex;
+    		justify-content: center;
+    		align-items: center;
+    		color: white;
+	">
+    		Checking your login...
+	</div>
     <header class="navbar">
         <a href="../index.html" class="logo">
             <span class="logo-icon">M</span>
@@ -245,6 +256,8 @@
 
     </main>
 
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
     <script src="../js/games/day-night.js"></script>
 
 </body>
