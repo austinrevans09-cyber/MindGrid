@@ -16,14 +16,29 @@ if (logoutButton) {
         logoutButton.disabled = true;
         logoutButton.textContent = "Logging out...";
 
-        const { error } = await supabaseClient.auth.signOut();
+        try {
+            const { error } = await supabaseClient.auth.signOut({
+                scope: "local"
+            });
 
-        if (error) {
-            alert("Unable to log out: " + error.message);
+            if (error) {
+                throw error;
+            }
+
+            window.location.replace(
+                "https://austinrevans09-cyber.github.io/MindGrid/login.html"
+            );
+
+        } catch (error) {
+            console.error("Logout error:", error);
+
+            alert("Logout failed: " + error.message);
+
             logoutButton.disabled = false;
             logoutButton.textContent = "Log out";
-            return;
         }
+    });
+}
 
         window.location.href = "login.html";
     });
