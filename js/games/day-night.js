@@ -1,9 +1,28 @@
-
 // ============================================
 // MINDGRID - DAY & NIGHT VERSION 2
 // Randomised probability-learning game
 // ============================================
 
+// ============================================
+// CHECK AUTHENTICATION
+// ============================================
+
+async function checkGameAuthentication() {
+
+    const loadingScreen = document.getElementById("auth-loading");
+
+    const { data, error } = await supabaseClient.auth.getSession();
+
+    if (error || !data.session) {
+        window.location.replace("../login.html");
+        return;
+    }
+
+    // User is authenticated, remove the loading screen
+    if (loadingScreen) {
+        loadingScreen.remove();
+    }
+}
 
 // ELEMENTS
 
@@ -914,3 +933,6 @@ retryButton.addEventListener("click", () => {
     setupScreen.classList.remove("hidden");
 
 });
+
+// Check authentication before allowing access
+checkGameAuthentication();
