@@ -1,5 +1,5 @@
 // ============================================
-// MINDGRID - DAY & NIGHT VERSION 3
+// MINDGRID - DAY & NIGHT VERSION 2
 // Randomised probability-learning game
 // ============================================
 
@@ -85,7 +85,7 @@ let roundResults = [];
 let combinationStats = {};
 
 let soundEnabled = true;
-
+let resultsSaved = false;
 
 // ============================================
 // RANDOM NUMBER HELPERS
@@ -283,6 +283,7 @@ function startGame() {
     totalResponseTime = 0;
     roundResults = [];
     answered = false;
+    resultsSaved = false;
 
     generateCombinations();
     createRoundDeck();
@@ -565,14 +566,20 @@ function submitPrediction(prediction) {
         playSound("incorrect");
     }
 
-    roundResults.push({
-        combination: currentCombination.name,
-        prediction: prediction,
-        outcome: currentOutcome,
-        correct: wasCorrect,
-        probability: currentCombination.dayProbability,
-        responseTime: responseTime
-    });
+roundResults.push({
+    combination: currentCombination.name,
+
+    symbols: [
+        currentCombination.symbolOne,
+        currentCombination.symbolTwo
+    ],
+
+    prediction: prediction,
+    outcome: currentOutcome,
+    correct: wasCorrect,
+    probability: currentCombination.dayProbability,
+    responseTime: responseTime
+});
 
     document.getElementById("score").textContent = score;
 
@@ -678,8 +685,81 @@ function endGame() {
 
     document.getElementById("progress-bar").style.width = "100%";
 
-    displayCombinationReview();
-    displayOutcomeStatistics();
+    
+displayCombinationReview();
+displayOutcomeStatistics();
+
+// Save the completed game to Supabase.
+saveDayNightResults(elapsed);
+
+// ============================================
+// SAVE DAY & NIGHT RESULTS
+// ============================================
+
+async function saveDayNightResults(elapsed) {
+
+    if (resultsSaved) return;
+
+    resultsSaved = true;
+
+    const review =
+        document.getElementById("combination-review");
+
+    const saveMessage = document.createElement("p");
+
+    saveMessage.id = "save-status";
+
+    saveMessage.textContent = "Saving your results...";
+
+    saveMessage.style.marginTop = "20px";
+
+    review.appendChild(saveMessage);
+
+
+    const result = await saveGameSession({
+
+        gameName: "Day & Night",
+
+        mode: selectedMode,
+
+        difficulty: selectedDifficulty,
+
+        totalRounds: totalRounds,
+
+        correctAnswers: correct,
+
+        score: score,
+
+        averageResponseTime: totalResponseTime / totalRounds,
+
+        bestStreak: bestStreak,
+
+        durationSeconds: Math.round(elapsed),
+
+        rounds: roundResults
+
+    });
+
+
+    if (result.success) {
+
+        saveMessage.textContent =
+            "Your results have been saved successfully.";
+
+        saveMessage.style.color = "#56D69B";
+
+    } else {
+
+        saveMessage.textContent =
+            "We couldn't save your results. Please contact support.";
+
+        saveMessage.style.color = "#FF8585";
+
+        console.error("Saving failed:", result.error);
+
+    }
+
+}
 }
 
 
@@ -792,29 +872,8 @@ retryButton.addEventListener("click", () => {
 // AUTHENTICATION CHECK
 // ============================================
 
-async function checkGameAuthentication() {
-    const loadingScreen =
-        document.getElementById("auth-loading");
-
-    try {
-        const { data, error } =
-            await supabaseClient.auth.getSession();
-
-        if (error || !data.session) {
-            window.location.replace("../login.html");
-            return;
-        }
-
-        // The user is logged in, so reveal the game.
-
-        if (loadingScreen) {
-            loadingScreen.remove();
-        }
-
-    } catch (error) {
-        console.error("Authentication check failed:", error);
-        window.location.replace("../login.html");
-    }
-}
+// ============================================
+// AUTHENTICATION
+// ============================================
 
 checkGameAuthentication();
