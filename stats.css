@@ -1,0 +1,232 @@
+
+/* ============================================
+   MINDGRID - STATISTICS PAGE
+============================================ */
+
+#auth-loading {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #101827;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 16px;
+}
+
+.navbar nav a.active {
+    color: #a78bfa;
+}
+
+.stats-page {
+    width: min(1100px, 90%);
+    margin: 0 auto;
+    padding: 65px 0 90px;
+}
+
+.stats-heading {
+    margin-bottom: 35px;
+}
+
+.stats-heading h1 {
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    margin: 12px 0;
+}
+
+.stats-heading h1 span {
+    color: #a78bfa;
+}
+
+.stats-heading p {
+    color: #9ca3af;
+    max-width: 600px;
+    line-height: 1.7;
+}
+
+
+/* OVERVIEW CARDS */
+
+.overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 18px;
+    margin-bottom: 25px;
+}
+
+.overview-card {
+    background: #182235;
+    border: 1px solid #29364c;
+    border-radius: 14px;
+    padding: 24px;
+}
+
+.overview-card p {
+    color: #9ca3af;
+    font-size: 14px;
+    margin: 0 0 12px;
+}
+
+.overview-card h2 {
+    color: white;
+    font-size: 2rem;
+    margin: 0;
+}
+
+
+/* MAIN PANELS */
+
+.stats-panel {
+    background: #182235;
+    border: 1px solid #29364c;
+    border-radius: 14px;
+    padding: 28px;
+    margin-bottom: 22px;
+}
+
+.panel-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.panel-heading h2 {
+    color: white;
+    font-size: 1.4rem;
+    margin: 8px 0 0;
+}
+
+.chart-container {
+    position: relative;
+    height: 300px;
+}
+
+.empty-message {
+    color: #9ca3af;
+    text-align: center;
+    padding: 25px 10px;
+}
+
+
+/* GAME BREAKDOWN */
+
+.breakdown-list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.breakdown-item {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 8px 20px;
+    align-items: center;
+}
+
+.breakdown-name {
+    color: white;
+    font-weight: 600;
+}
+
+.breakdown-detail {
+    color: #9ca3af;
+    font-size: 13px;
+    text-align: right;
+}
+
+.progress-track {
+    grid-column: 1 / -1;
+    height: 9px;
+    background: #29364c;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #8b5cf6;
+    border-radius: 10px;
+}
+
+
+/* RECENT SESSIONS TABLE */
+
+.table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+}
+
+.sessions-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+}
+
+.sessions-table th,
+.sessions-table td {
+    padding: 16px 12px;
+    text-align: left;
+    border-bottom: 1px solid #29364c;
+}
+
+.sessions-table th {
+    color: #9ca3af;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.sessions-table td {
+    color: white;
+    font-size: 14px;
+}
+
+.sessions-table tbody tr:last-child td {
+    border-bottom: none;
+}
+
+.stats-error {
+    color: #f87171;
+    text-align: center;
+    margin-top: 20px;
+}
+
+
+/* MOBILE */
+
+@media (max-width: 800px) {
+
+    .overview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .stats-panel {
+        padding: 20px;
+    }
+
+}
+
+@media (max-width: 500px) {
+
+    .stats-page {
+        padding-top: 40px;
+    }
+
+    .overview-grid {
+        gap: 10px;
+    }
+
+    .overview-card {
+        padding: 17px;
+    }
+
+    .overview-card h2 {
+        font-size: 1.6rem;
+    }
+
+    .chart-container {
+        height: 240px;
+    }
+
+}

@@ -1,0 +1,143 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindGrid | Your Statistics</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/stats.css">
+</head>
+<body>
+
+    <div id="auth-loading">
+        Checking your login...
+    </div>
+
+    <header class="navbar">
+        <a href="index.html" class="logo">
+            <span class="logo-icon">M</span>
+            MINDGRID
+        </a>
+
+        <nav>
+            <a href="index.html">Home</a>
+            <a href="index.html#games">Games</a>
+            <a href="stats.html" class="active">Stats</a>
+            <a href="index.html#about">About</a>
+        </nav>
+
+        <button id="logout-button" class="logout-button">
+            Log out
+        </button>
+    </header>
+
+    <main class="stats-page">
+
+        <section class="stats-heading">
+            <span class="eyebrow">YOUR PERFORMANCE</span>
+            <h1>Your <span>Statistics</span></h1>
+            <p>Track your progress, review your attempts and see where you're improving.</p>
+        </section>
+
+        <section class="overview-grid">
+
+            <div class="overview-card">
+                <p>Games Played</p>
+                <h2 id="games-played">0</h2>
+            </div>
+
+            <div class="overview-card">
+                <p>Rounds Completed</p>
+                <h2 id="rounds-played">0</h2>
+            </div>
+
+            <div class="overview-card">
+                <p>Overall Accuracy</p>
+                <h2 id="overall-accuracy">—</h2>
+            </div>
+
+            <div class="overview-card">
+                <p>Best Streak</p>
+                <h2 id="best-streak">0</h2>
+            </div>
+
+        </section>
+
+        <section class="stats-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">YOUR PROGRESS</span>
+                    <h2>Accuracy over time</h2>
+                </div>
+            </div>
+
+            <div class="chart-container">
+                <canvas id="accuracy-chart"></canvas>
+                <p id="chart-empty" class="empty-message">
+                    Complete a game to start building your progress chart.
+                </p>
+            </div>
+        </section>
+
+        <section class="stats-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">GAME PERFORMANCE</span>
+                    <h2>Game breakdown</h2>
+                </div>
+            </div>
+
+            <div id="game-breakdown" class="breakdown-list">
+                <p class="empty-message">Loading your game statistics...</p>
+            </div>
+        </section>
+
+        <section class="stats-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">RECENT ACTIVITY</span>
+                    <h2>Recent sessions</h2>
+                </div>
+            </div>
+
+            <div class="table-wrapper">
+                <table class="sessions-table">
+                    <thead>
+                        <tr>
+                            <th>Game</th>
+                            <th>Difficulty</th>
+                            <th>Score</th>
+                            <th>Accuracy</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+
+                    <tbody id="sessions-list">
+                        <tr>
+                            <td colspan="5">Loading your sessions...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <p id="stats-error" class="stats-error"></p>
+
+    </main>
+
+    <footer>
+        <div class="logo">MINDGRID</div>
+        <p>Independent assessment practice platform.</p>
+        <p>© 2026 MindGrid</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/game-common.js"></script>
+    <script src="js/stats.js"></script>
+
+</body>
+</html>
