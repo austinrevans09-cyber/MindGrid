@@ -26,7 +26,7 @@
 }
 
 .stats-heading {
-    margin-bottom: 35px;
+    margin-bottom: 45px;
 }
 
 .stats-heading h1 {
@@ -45,13 +45,29 @@
 }
 
 
-/* OVERVIEW CARDS */
+/* SECTION HEADINGS */
+
+.stats-section {
+    margin-bottom: 35px;
+}
+
+.section-title {
+    margin-bottom: 18px;
+}
+
+.section-title h2 {
+    color: white;
+    font-size: 1.4rem;
+    margin: 8px 0 0;
+}
+
+
+/* OVERVIEW AND PERSONAL BEST CARDS */
 
 .overview-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
     gap: 18px;
-    margin-bottom: 25px;
 }
 
 .overview-card {
@@ -71,6 +87,11 @@
     color: white;
     font-size: 2rem;
     margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.personal-best {
+    border-color: #514078;
 }
 
 
@@ -97,6 +118,9 @@
     margin: 8px 0 0;
 }
 
+
+/* ACCURACY CHART */
+
 .chart-container {
     position: relative;
     height: 300px;
@@ -106,6 +130,41 @@
     color: #9ca3af;
     text-align: center;
     padding: 25px 10px;
+}
+
+
+/* DIFFICULTY BREAKDOWN */
+
+.difficulty-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+}
+
+.difficulty-card {
+    background: #202d42;
+    border: 1px solid #35445b;
+    border-radius: 12px;
+    padding: 20px;
+}
+
+.difficulty-card h3 {
+    color: white;
+    font-size: 1.1rem;
+    margin: 0 0 15px;
+}
+
+.difficulty-accuracy {
+    color: #a78bfa;
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 12px;
+}
+
+.difficulty-detail {
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1.8;
 }
 
 
@@ -150,6 +209,35 @@
 }
 
 
+/* REACTION TIME BREAKDOWN */
+
+.reaction-list {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.reaction-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    padding: 15px 18px;
+    background: #202d42;
+    border-radius: 10px;
+}
+
+.reaction-name {
+    color: white;
+    font-weight: 600;
+}
+
+.reaction-value {
+    color: #a78bfa;
+    font-weight: 700;
+}
+
+
 /* RECENT SESSIONS TABLE */
 
 .table-wrapper {
@@ -160,7 +248,7 @@
 .sessions-table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 600px;
+    min-width: 720px;
 }
 
 .sessions-table th,
@@ -201,6 +289,10 @@
         grid-template-columns: repeat(2, 1fr);
     }
 
+    .difficulty-grid {
+        grid-template-columns: 1fr;
+    }
+
     .stats-panel {
         padding: 20px;
     }
@@ -227,6 +319,10 @@
 
     .chart-container {
         height: 240px;
+    }
+
+    .reaction-item {
+        padding: 13px;
     }
 
 }
