@@ -1,0 +1,345 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindGrid | Lock Game</title>
+
+    <link rel="stylesheet" href="../css/style.css">
+    <link rel="stylesheet" href="../css/games.css">
+    <link rel="stylesheet" href="../css/lock.css">
+</head>
+
+<body>
+
+    <div id="auth-loading" class="game-auth-loading">
+        Checking your login...
+    </div>
+
+    <header class="navbar">
+        <a href="../index.html" class="logo">
+            <span class="logo-icon">M</span>
+            MINDGRID
+        </a>
+
+        <nav>
+            <a href="../index.html">Home</a>
+            <a href="../index.html#games">Games</a>
+            <a href="../stats.html">Stats</a>
+        </nav>
+
+        <button id="logout-button" class="logout-button">
+            Log out
+        </button>
+    </header>
+
+
+    <main class="lock-page">
+
+        <!-- GAME INTRODUCTION -->
+
+        <section class="lock-heading">
+            <span class="eyebrow">SECURITY & MEMORY</span>
+
+            <h1>Lock <span>Game</span></h1>
+
+            <p>
+                Memorise the combination, follow the moving dial
+                and unlock the vault. Precision and timing are everything.
+            </p>
+        </section>
+
+
+        <!-- GAME SETUP -->
+
+        <section id="lock-setup" class="lock-panel">
+
+            <h2>Configure your challenge</h2>
+
+            <div class="setup-group">
+                <label>Game mode</label>
+
+                <div class="option-grid">
+                    <button class="option-button selected"
+                        data-mode="learning">
+                        <strong>Learning</strong>
+                        <span>Learn the mechanics</span>
+                    </button>
+
+                    <button class="option-button"
+                        data-mode="practice">
+                        <strong>Practice</strong>
+                        <span>Improve your performance</span>
+                    </button>
+
+                    <button class="option-button"
+                        data-mode="assessment">
+                        <strong>Assessment</strong>
+                        <span>Test your ability</span>
+                    </button>
+                </div>
+            </div>
+
+
+            <div class="setup-group">
+                <label>Difficulty</label>
+
+                <div class="difficulty-options">
+
+                    <button class="difficulty-button selected"
+                        data-difficulty="easy">
+                        Easy
+                    </button>
+
+                    <button class="difficulty-button"
+                        data-difficulty="normal">
+                        Normal
+                    </button>
+
+                    <button class="difficulty-button"
+                        data-difficulty="hard">
+                        Hard
+                    </button>
+
+                </div>
+            </div>
+
+
+            <div class="difficulty-description" id="difficulty-description">
+                Easy: slower dial movement and a wider target tolerance.
+            </div>
+
+
+            <div class="game-instructions">
+
+                <h3>How to play</h3>
+
+                <ol>
+                    <li>Memorise the three-number combination.</li>
+                    <li>Wait for the dial to start moving.</li>
+                    <li>Press STOP when the dial reaches the first number.</li>
+                    <li>Repeat for the second and third numbers.</li>
+                    <li>Unlock all three positions to open the vault.</li>
+                </ol>
+
+                <p>
+                    You must stop the dial in the correct order.
+                    Each number has a small tolerance, depending on difficulty.
+                </p>
+
+            </div>
+
+            <button id="start-game" class="lock-primary-button">
+                Start Game
+            </button>
+
+        </section>
+
+
+        <!-- ACTIVE GAME -->
+
+        <section id="lock-game" class="lock-panel" hidden>
+
+            <div class="game-top-bar">
+
+                <div>
+                    <span class="game-label">ROUND</span>
+                    <strong id="round-display">1</strong>
+                </div>
+
+                <div>
+                    <span class="game-label">SCORE</span>
+                    <strong id="score-display">0</strong>
+                </div>
+
+                <div>
+                    <span class="game-label">STREAK</span>
+                    <strong id="streak-display">0</strong>
+                </div>
+
+            </div>
+
+
+            <div class="lock-status">
+                <span id="status-indicator" class="status-dot"></span>
+                <span id="lock-status-text">MEMORISE THE COMBINATION</span>
+            </div>
+
+
+            <!-- COMBINATION DISPLAY -->
+
+            <div class="combination-section">
+
+                <p id="combination-instruction">
+                    Memorise this combination
+                </p>
+
+                <div class="combination-display">
+
+                    <div class="combination-number" id="target-one">--</div>
+                    <div class="combination-number" id="target-two">--</div>
+                    <div class="combination-number" id="target-three">--</div>
+
+                </div>
+
+                <div class="combination-hint" id="combination-hint">
+                    The combination will disappear shortly.
+                </div>
+
+            </div>
+
+
+            <!-- VAULT DIAL -->
+
+            <div class="dial-section">
+
+                <div class="dial">
+
+                    <div class="dial-inner">
+
+                        <div class="dial-label">
+                            CURRENT POSITION
+                        </div>
+
+                        <div id="dial-number" class="dial-number">
+                            00
+                        </div>
+
+                        <div class="dial-subtitle">
+                            TURNING
+                        </div>
+
+                    </div>
+
+                    <div class="dial-marker"></div>
+
+                </div>
+
+                <div class="dial-progress">
+
+                    <div class="progress-step" id="step-one">
+                        <span>1</span>
+                        <small>First</small>
+                    </div>
+
+                    <div class="progress-line"></div>
+
+                    <div class="progress-step" id="step-two">
+                        <span>2</span>
+                        <small>Second</small>
+                    </div>
+
+                    <div class="progress-line"></div>
+
+                    <div class="progress-step" id="step-three">
+                        <span>3</span>
+                        <small>Third</small>
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="lock-feedback" id="lock-feedback">
+                Get ready...
+            </div>
+
+
+            <div class="lock-controls">
+
+                <button id="stop-dial" class="lock-stop-button" disabled>
+                    STOP DIAL
+                </button>
+
+                <button id="finish-session" class="lock-secondary-button">
+                    Finish Session
+                </button>
+
+            </div>
+
+            <p class="lock-small-text" id="lock-small-text">
+                Stop the dial as close to the target number as possible.
+            </p>
+
+        </section>
+
+
+        <!-- RESULTS -->
+
+        <section id="lock-results" class="lock-panel" hidden>
+
+            <div class="results-heading">
+                <span class="eyebrow">CHALLENGE COMPLETE</span>
+                <h2 id="results-title">Vault unlocked!</h2>
+                <p id="results-description">
+                    Here are your results.
+                </p>
+            </div>
+
+
+            <div class="results-grid">
+
+                <div class="result-card">
+                    <p>Final Score</p>
+                    <h3 id="result-score">0</h3>
+                </div>
+
+                <div class="result-card">
+                    <p>Accuracy</p>
+                    <h3 id="result-accuracy">0%</h3>
+                </div>
+
+                <div class="result-card">
+                    <p>Correct Locks</p>
+                    <h3 id="result-correct">0 / 0</h3>
+                </div>
+
+                <div class="result-card">
+                    <p>Average Reaction</p>
+                    <h3 id="result-reaction">—</h3>
+                </div>
+
+                <div class="result-card">
+                    <p>Best Streak</p>
+                    <h3 id="result-streak">0</h3>
+                </div>
+
+            </div>
+
+
+            <div id="results-breakdown" class="results-breakdown"></div>
+
+            <p id="save-status" class="save-status">
+                Saving your results...
+            </p>
+
+            <div class="results-buttons">
+
+                <button id="play-again" class="lock-primary-button">
+                    Play Again
+                </button>
+
+                <a href="../stats.html" class="lock-secondary-button">
+                    View Statistics
+                </a>
+
+                <a href="../index.html" class="lock-secondary-button">
+                    Back to Home
+                </a>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../js/supabase.js"></script>
+    <script src="../js/game-common.js"></script>
+    <script src="../js/games/lock.js"></script>
+
+</body>
+</html>
