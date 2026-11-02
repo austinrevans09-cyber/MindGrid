@@ -40,29 +40,76 @@
             <p>Track your progress, review your attempts and see where you're improving.</p>
         </section>
 
-        <section class="overview-grid">
 
-            <div class="overview-card">
-                <p>Games Played</p>
-                <h2 id="games-played">0</h2>
+        <!-- OVERALL STATISTICS -->
+
+        <section class="stats-section">
+            <div class="section-title">
+                <span class="eyebrow">OVERVIEW</span>
+                <h2>Your activity</h2>
             </div>
 
-            <div class="overview-card">
-                <p>Rounds Completed</p>
-                <h2 id="rounds-played">0</h2>
-            </div>
+            <div class="overview-grid">
 
-            <div class="overview-card">
-                <p>Overall Accuracy</p>
-                <h2 id="overall-accuracy">—</h2>
-            </div>
+                <div class="overview-card">
+                    <p>Games Played</p>
+                    <h2 id="games-played">0</h2>
+                </div>
 
-            <div class="overview-card">
-                <p>Best Streak</p>
-                <h2 id="best-streak">0</h2>
-            </div>
+                <div class="overview-card">
+                    <p>Rounds Completed</p>
+                    <h2 id="rounds-played">0</h2>
+                </div>
 
+                <div class="overview-card">
+                    <p>Overall Accuracy</p>
+                    <h2 id="overall-accuracy">—</h2>
+                </div>
+
+                <div class="overview-card">
+                    <p>Average Reaction</p>
+                    <h2 id="average-reaction">—</h2>
+                </div>
+
+            </div>
         </section>
+
+
+        <!-- PERSONAL BESTS -->
+
+        <section class="stats-section">
+            <div class="section-title">
+                <span class="eyebrow">YOUR RECORDS</span>
+                <h2>Personal bests</h2>
+            </div>
+
+            <div class="overview-grid">
+
+                <div class="overview-card personal-best">
+                    <p>Highest Score</p>
+                    <h2 id="highest-score">—</h2>
+                </div>
+
+                <div class="overview-card personal-best">
+                    <p>Best Accuracy</p>
+                    <h2 id="best-accuracy">—</h2>
+                </div>
+
+                <div class="overview-card personal-best">
+                    <p>Longest Streak</p>
+                    <h2 id="best-streak">0</h2>
+                </div>
+
+                <div class="overview-card personal-best">
+                    <p>Fastest Average</p>
+                    <h2 id="fastest-reaction">—</h2>
+                </div>
+
+            </div>
+        </section>
+
+
+        <!-- ACCURACY GRAPH -->
 
         <section class="stats-panel">
             <div class="panel-heading">
@@ -74,17 +121,37 @@
 
             <div class="chart-container">
                 <canvas id="accuracy-chart"></canvas>
+
                 <p id="chart-empty" class="empty-message">
                     Complete a game to start building your progress chart.
                 </p>
             </div>
         </section>
 
+
+        <!-- DIFFICULTY BREAKDOWN -->
+
+        <section class="stats-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">CHALLENGE LEVEL</span>
+                    <h2>Difficulty breakdown</h2>
+                </div>
+            </div>
+
+            <div id="difficulty-breakdown" class="difficulty-grid">
+                <p class="empty-message">Loading difficulty statistics...</p>
+            </div>
+        </section>
+
+
+        <!-- GAME BREAKDOWN -->
+
         <section class="stats-panel">
             <div class="panel-heading">
                 <div>
                     <span class="eyebrow">GAME PERFORMANCE</span>
-                    <h2>Game breakdown</h2>
+                    <h2>Performance by game</h2>
                 </div>
             </div>
 
@@ -92,6 +159,25 @@
                 <p class="empty-message">Loading your game statistics...</p>
             </div>
         </section>
+
+
+        <!-- REACTION TIME BY GAME -->
+
+        <section class="stats-panel">
+            <div class="panel-heading">
+                <div>
+                    <span class="eyebrow">REACTION SPEED</span>
+                    <h2>Reaction time by game</h2>
+                </div>
+            </div>
+
+            <div id="reaction-breakdown" class="reaction-list">
+                <p class="empty-message">Loading reaction statistics...</p>
+            </div>
+        </section>
+
+
+        <!-- RECENT SESSIONS -->
 
         <section class="stats-panel">
             <div class="panel-heading">
@@ -109,13 +195,14 @@
                             <th>Difficulty</th>
                             <th>Score</th>
                             <th>Accuracy</th>
+                            <th>Reaction</th>
                             <th>Date</th>
                         </tr>
                     </thead>
 
                     <tbody id="sessions-list">
                         <tr>
-                            <td colspan="5">Loading your sessions...</td>
+                            <td colspan="6">Loading your sessions...</td>
                         </tr>
                     </tbody>
                 </table>
