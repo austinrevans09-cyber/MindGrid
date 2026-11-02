@@ -1,621 +1,73 @@
-
-/* ============================================
-   MINDGRID - LOCK GAME
-============================================ */
-
-[hidden] {
-    display: none !important;
-}
-
-.game-auth-loading {
-    position: fixed;
-    inset: 0;
-    z-index: 9999;
-    background: #101827;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-}
-
-
-/* PAGE */
-
-.lock-page {
-    width: min(900px, 92%);
-    margin: 0 auto;
-    padding: 55px 0 90px;
-}
-
-.lock-heading {
-    text-align: center;
-    margin-bottom: 35px;
-}
-
-.lock-heading h1 {
-    font-size: clamp(2.4rem, 5vw, 3.5rem);
-    margin: 12px 0;
-}
-
-.lock-heading h1 span {
-    color: #a78bfa;
-}
-
-.lock-heading p {
-    color: #9ca3af;
-    max-width: 600px;
-    margin: 0 auto;
-    line-height: 1.7;
-}
-
-
-/* PANELS */
-
-.lock-panel {
-    background: #182235;
-    border: 1px solid #29364c;
-    border-radius: 18px;
-    padding: 30px;
-    margin-bottom: 25px;
-}
-
-.lock-panel > h2 {
-    color: white;
-    margin-top: 0;
-}
-
-
-/* SETUP */
-
-.setup-group {
-    margin: 28px 0;
-}
-
-.setup-group > label {
-    display: block;
-    color: white;
-    font-weight: 600;
-    margin-bottom: 12px;
-}
-
-.option-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.option-button,
-.difficulty-button {
-    background: #202d42;
-    border: 1px solid #35445b;
-    border-radius: 10px;
-    color: white;
-    padding: 16px;
-    cursor: pointer;
-    font: inherit;
-    transition: 0.2s;
-}
-
-.option-button {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-    text-align: left;
-}
-
-.option-button strong {
-    font-size: 15px;
-}
-
-.option-button span {
-    color: #9ca3af;
-    font-size: 12px;
-}
-
-.option-button:hover,
-.difficulty-button:hover {
-    border-color: #a78bfa;
-}
-
-.option-button.selected,
-.difficulty-button.selected {
-    border-color: #a78bfa;
-    background: #30264d;
-    box-shadow: 0 0 0 1px #a78bfa;
-}
-
-.difficulty-options {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 12px;
-}
-
-.difficulty-description {
-    color: #a78bfa;
-    font-size: 13px;
-    margin-top: -12px;
-}
-
-
-/* INSTRUCTIONS */
-
-.game-instructions {
-    background: #202d42;
-    border-radius: 12px;
-    padding: 20px;
-    margin: 30px 0;
-}
-
-.game-instructions h3 {
-    color: white;
-    margin-top: 0;
-}
-
-.game-instructions ol {
-    color: #d1d5db;
-    line-height: 1.9;
-    padding-left: 22px;
-}
-
-.game-instructions p {
-    color: #9ca3af;
-    font-size: 13px;
-    line-height: 1.7;
-}
-
-
-/* BUTTONS */
-
-.lock-primary-button,
-.lock-secondary-button {
-    display: inline-flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    text-decoration: none;
-    border-radius: 10px;
-    padding: 14px 22px;
-    font: inherit;
-    font-weight: 700;
-    cursor: pointer;
-    transition: 0.2s;
-}
-
-.lock-primary-button {
-    width: 100%;
-    background: #8b5cf6;
-    color: white;
-    border: none;
-}
-
-.lock-primary-button:hover {
-    background: #7c3aed;
-}
-
-.lock-secondary-button {
-    background: #29364c;
-    color: white;
-    border: 1px solid #43516a;
-}
-
-.lock-secondary-button:hover {
-    border-color: #a78bfa;
-}
-
-.lock-primary-button:disabled,
-.lock-stop-button:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-
-/* GAME TOP BAR */
-
-.game-top-bar {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
-    text-align: center;
-    padding-bottom: 25px;
-    border-bottom: 1px solid #29364c;
-}
-
-.game-top-bar > div {
-    display: flex;
-    flex-direction: column;
-    gap: 7px;
-}
-
-.game-label {
-    color: #9ca3af;
-    font-size: 11px;
-    letter-spacing: 1px;
-}
-
-.game-top-bar strong {
-    color: white;
-    font-size: 22px;
-}
-
-
-/* STATUS */
-
-.lock-status {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    color: #c4b5fd;
-    font-size: 12px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    margin: 25px 0;
-}
-
-.status-dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    background: #a78bfa;
-    box-shadow: 0 0 10px #a78bfa;
-}
-
-.status-dot.active {
-    background: #34d399;
-    box-shadow: 0 0 10px #34d399;
-}
-
-.status-dot.warning {
-    background: #fbbf24;
-    box-shadow: 0 0 10px #fbbf24;
-}
-
-
-/* COMBINATION */
-
-.combination-section {
-    text-align: center;
-    margin: 25px 0 30px;
-}
-
-.combination-section > p {
-    color: #d1d5db;
-    font-weight: 600;
-}
-
-.combination-display {
-    display: flex;
-    justify-content: center;
-    gap: 14px;
-    margin: 18px 0;
-}
-
-.combination-number {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 75px;
-    height: 75px;
-    background: #202d42;
-    border: 1px solid #514078;
-    border-radius: 13px;
-    color: #c4b5fd;
-    font-size: 30px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-}
-
-.combination-hint {
-    color: #9ca3af;
-    font-size: 12px;
-}
-
-
-/* DIAL */
-
-.dial-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 25px 0;
-}
-
-.dial {
-    position: relative;
-    width: 250px;
-    height: 250px;
-    border-radius: 50%;
-    background: conic-gradient(
-        from 0deg,
-        #8b5cf6,
-        #29364c,
-        #8b5cf6,
-        #29364c,
-        #8b5cf6
-    );
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    box-shadow: 0 0 35px rgba(139, 92, 246, 0.15);
-}
-
-.dial::before {
-    content: "";
-    position: absolute;
-    inset: 9px;
-    border-radius: 50%;
-    border: 2px solid #514078;
-}
-
-.dial-inner {
-    position: relative;
-    z-index: 2;
-    width: 195px;
-    height: 195px;
-    border-radius: 50%;
-    background: #101827;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-}
-
-.dial-label {
-    color: #9ca3af;
-    font-size: 10px;
-    letter-spacing: 1px;
-}
-
-.dial-number {
-    color: white;
-    font-size: 58px;
-    font-weight: 800;
-    font-variant-numeric: tabular-nums;
-    line-height: 1.3;
-}
-
-.dial-subtitle {
-    color: #a78bfa;
-    font-size: 11px;
-    letter-spacing: 2px;
-}
-
-.dial-marker {
-    position: absolute;
-    z-index: 3;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 8px;
-    height: 17px;
-    background: white;
-    border-radius: 5px;
-}
-
-
-/* PROGRESS */
-
-.dial-progress {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    margin-top: 25px;
-}
-
-.progress-step {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 5px;
-    color: #6b7280;
-}
-
-.progress-step span {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-    background: #29364c;
-    font-weight: 700;
-}
-
-.progress-step small {
-    font-size: 10px;
-}
-
-.progress-step.active {
-    color: #c4b5fd;
-}
-
-.progress-step.active span {
-    background: #8b5cf6;
-    color: white;
-}
-
-.progress-step.completed span {
-    background: #059669;
-    color: white;
-}
-
-.progress-line {
-    width: 35px;
-    height: 2px;
-    background: #35445b;
-    margin-bottom: 17px;
-}
-
-
-/* FEEDBACK AND CONTROLS */
-
-.lock-feedback {
-    text-align: center;
-    color: #d1d5db;
-    min-height: 26px;
-    margin: 22px 0;
-    font-weight: 600;
-}
-
-.lock-feedback.success {
-    color: #34d399;
-}
-
-.lock-feedback.error {
-    color: #f87171;
-}
-
-.lock-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.lock-stop-button {
-    width: 100%;
-    padding: 19px;
-    border: none;
-    border-radius: 12px;
-    background: #8b5cf6;
-    color: white;
-    font-size: 18px;
-    font-weight: 800;
-    letter-spacing: 2px;
-    cursor: pointer;
-}
-
-.lock-stop-button:hover:not(:disabled) {
-    background: #7c3aed;
-}
-
-.lock-small-text {
-    color: #9ca3af;
-    text-align: center;
-    font-size: 12px;
-    margin-top: 15px;
-}
-
-
-/* RESULTS */
-
-.results-heading {
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.results-heading h2 {
-    color: white;
-    font-size: 2rem;
-    margin: 12px 0;
-}
-
-.results-heading p {
-    color: #9ca3af;
-}
-
-.results-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 14px;
-    margin-bottom: 25px;
-}
-
-.result-card {
-    background: #202d42;
-    border: 1px solid #35445b;
-    border-radius: 12px;
-    padding: 20px;
-    text-align: center;
-}
-
-.result-card p {
-    color: #9ca3af;
-    font-size: 12px;
-    margin: 0 0 10px;
-}
-
-.result-card h3 {
-    color: #c4b5fd;
-    font-size: 25px;
-    margin: 0;
-}
-
-.results-breakdown {
-    color: #d1d5db;
-    text-align: center;
-    line-height: 1.8;
-    margin: 20px 0;
-}
-
-.save-status {
-    text-align: center;
-    color: #9ca3af;
-    font-size: 13px;
-    margin: 25px 0;
-}
-
-.save-status.saved {
-    color: #34d399;
-}
-
-.save-status.failed {
-    color: #f87171;
-}
-
-.results-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-
-/* MOBILE */
-
-@media (max-width: 650px) {
-
-    .lock-page {
-        padding-top: 35px;
-    }
-
-    .lock-panel {
-        padding: 20px;
-    }
-
-    .option-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .option-button {
-        padding: 13px;
-    }
-
-    .difficulty-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .dial {
-        width: 220px;
-        height: 220px;
-    }
-
-    .dial-inner {
-        width: 170px;
-        height: 170px;
-    }
-
-    .dial-number {
-        font-size: 48px;
-    }
-
-    .results-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .combination-number {
-        width: 65px;
-        height: 65px;
-        font-size: 25px;
-    }
-
+/* MINDGRID LOCK GAME */
+.lock-page { min-height: 100vh; }
+.lock-container { max-width: 900px; }
+.lock-auth-loading {
+    position: fixed; inset: 0; z-index: 9999; background: #101827;
+    display: flex; justify-content: center; align-items: center; color: white;
+}
+.lock-how-to {
+    background: #222238; border: 1px solid #393951; border-radius: 12px;
+    padding: 18px 20px; margin: 20px 0 25px; color: #b9b9ce;
+    font-size: 13px; line-height: 1.65;
+}
+.lock-how-to h3 { color: white; margin: 0 0 8px; }
+.lock-how-to p { margin: 7px 0; }
+.lock-how-to strong { color: #c2afff; }
+.lock-page .game-settings { justify-content: flex-start; }
+.lock-page .game-settings > div { display:flex; flex-direction:column; gap:8px; }
+.lock-page .game-settings select { min-width: 150px; }
+.lock-progress-row {
+    display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap;
+    margin-top:30px; color:#b9b9ce; font-size:11px; letter-spacing:1px;
+}
+.lock-stage-track { height:7px; background:#303047; border-radius:10px; overflow:hidden; margin-top:10px; }
+#stage-progress { height:100%; width:0; background:#9167ff; transition:width .25s; }
+.lock-stage-lights { display:flex; gap:9px; justify-content:center; margin:22px 0 8px; }
+.stage-light { width:13px; height:13px; border-radius:50%; background:#4a4a5c; box-shadow:0 0 0 3px #29293d; }
+.stage-light.active, .stage-light.complete { background:#45d6cf; box-shadow:0 0 12px #45d6cf88; }
+.lock-instrument {
+    position:relative; width:min(100%, 560px); aspect-ratio:1; margin:0 auto;
+    display:grid; place-items:center;
+}
+#lock-dial { width:100%; height:100%; max-width:560px; cursor:pointer; touch-action:manipulation; }
+.lock-code-panel {
+    position:absolute; z-index:1; width:43%; aspect-ratio:1; border-radius:50%;
+    background:radial-gradient(circle at 35% 25%, #35354d, #171725 72%);
+    border:8px solid #4b4b63; box-shadow:inset 0 4px 18px #0009, 0 4px 15px #0005;
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    pointer-events:none; padding:10px;
+}
+.lock-code { display:flex; justify-content:center; gap:5px; width:100%; }
+.lock-code span {
+    font-family:Consolas, monospace; font-size:clamp(17px, 4vw, 31px);
+    font-weight:700; color:#e5e7ef; min-width:14%;
+    text-align:center; border-bottom:2px solid #77778c; padding-bottom:5px;
+}
+.lock-code span.done { color:#48d9d0; border-color:#48d9d0; }
+.lock-status { margin-top:12px; color:#ff727e; font-weight:800; font-size:clamp(10px, 2vw, 15px); letter-spacing:2px; }
+.lock-status.unlocked { color:#45d6a1; }
+.target-hint { color:#9d9db4; font-size:clamp(7px, 1.5vw, 10px); letter-spacing:1px; margin-top:9px; text-align:center; }
+.lock-controls { display:flex; gap:12px; justify-content:center; margin:8px auto 0; max-width:560px; }
+.stop-button { flex:1; max-width:360px; border:0; cursor:pointer; font-size:17px; font-weight:800; }
+.stop-button span { font-size:11px; opacity:.75; margin-left:7px; }
+.secondary-button {
+    display:inline-flex; justify-content:center; align-items:center; padding:13px 20px;
+    border-radius:9px; background:#292942; border:1px solid #55556e; color:#fff;
+    text-decoration:none; cursor:pointer; font:inherit; font-size:13px;
+}
+.lock-feedback { min-height:25px; text-align:center; color:#aaaac1; font-size:12px; margin-top:15px; }
+.lock-feedback.good { color:#54d8b0; }
+.lock-feedback.bad { color:#ff858e; }
+.lock-page .game-instructions { margin-top:8px; }
+.lock-save-status { color:#a4a4bc; text-align:center; font-size:12px; }
+.lock-result-actions { display:flex; justify-content:center; gap:12px; flex-wrap:wrap; margin-top:25px; }
+.lock-result-actions button { border:0; cursor:pointer; }
+@media (max-width:650px) {
+    .lock-page .game-panel { padding:24px 16px; }
+    .lock-page .mode-options { grid-template-columns:1fr; }
+    .lock-instrument { width:min(100%, 430px); }
+    .lock-code-panel { border-width:5px; }
+    .lock-controls { flex-direction:column; }
+    .stop-button { max-width:none; min-height:48px; }
+    .lock-progress-row { font-size:10px; }
 }
