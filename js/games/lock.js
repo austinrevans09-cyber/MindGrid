@@ -1,1036 +1,504 @@
-
 // ============================================
 // MINDGRID - LOCK GAME
+// Four-stage rotating target-window challenge
 // ============================================
 
+const setupScreen = document.getElementById("setup-screen");
+const playingScreen = document.getElementById("playing-screen");
+const resultsScreen = document.getElementById("results-screen");
+const dial = document.getElementById("lock-dial");
+const ctx = dial.getContext("2d");
 
-// ============================================
-// GAME SETTINGS
-// ============================================
-
-const lockSettings = {
-
-    learning: {
-        rounds: 5
-    },
-
-    assessment: {
-        rounds: 10
-    },
-
-    practice: {
-        rounds: Infinity
-    }
-
+const stageSettings = {
+    easy: [
+        { window: 0.82, speed: 0.78, pattern: "steady" },
+        { window: 0.62, speed: 1.00, pattern: "variable" },
+        { window: 0.46, speed: 1.22, pattern: "bouncing" },
+        { window: 0.32, speed: 1.48, pattern: "chaotic" }
+    ],
+    normal: [
+        { window: 0.68, speed: 1.00, pattern: "steady" },
+        { window: 0.48, speed: 1.35, pattern: "variable" },
+        { window: 0.32, speed: 1.70, pattern: "bouncing" },
+        { window: 0.20, speed: 2.15, pattern: "chaotic" }
+    ],
+    hard: [
+        { window: 0.54, speed: 1.25, pattern: "variable" },
+        { window: 0.34, speed: 1.75, pattern: "bouncing" },
+        { window: 0.22, speed: 2.25, pattern: "jumps" },
+        { window: 0.12, speed: 2.90, pattern: "chaotic" }
+    ]
 };
 
-const difficultySettings = {
-
-    easy: {
-        speed: 7,
-        tolerance: 5,
-        description: "Easy: slower dial movement and a wider target tolerance."
-    },
-
-    normal: {
-        speed: 12,
-        tolerance: 3,
-        description: "Normal: faster dial movement and a smaller target tolerance."
-    },
-
-    hard: {
-        speed: 18,
-        tolerance: 1,
-        description: "Hard: very fast dial movement and a narrow target tolerance."
-    }
-
-};
-
-
-// ============================================
-// GAME VARIABLES
-// ============================================
+const TAU = Math.PI * 2;
+const DIGIT_COUNT = 10;
+const BASE_ANGLE = -Math.PI / 2;
 
 let selectedMode = "learning";
-let selectedDifficulty = "easy";
-
-let gameActive = false;
-let dialRunning = false;
-
-let currentRound = 0;
-let totalRounds = 0;
-
+let selectedDifficulty = "normal";
+let soundEnabled = true;
+let stage = 0;
+let digitIndex = 0;
+let codes = [];
 let score = 0;
-let correctAnswers = 0;
-let currentStreak = 0;
+let hits = 0;
+let misses = 0;
+let completedLocks = 0;
+let streak = 0;
 let bestStreak = 0;
-
-let targetCombination = [];
-let playerCombination = [];
-
-let currentTargetIndex = 0;
-
-let roundStartTime = 0;
-let roundResponseTime = 0;
-
 let totalResponseTime = 0;
+let attempts = [];
+let startTime = 0;
+let attemptStart = 0;
+let rotorAngle = 0;
+let lastFrame = 0;
+let animationId = null;
+let elapsedTimer = null;
+let running = false;
+let waitingForFeedback = false;
+let currentWindow = 0;
+let currentSpeed = 1;
+let patternTime = 0;
+let patternDirection = 1;
+let jumpIndex = 0;
+let jumpTimer = 0;
+let lastSaved = false;
 
-let roundResults = [];
+function randomInt(max) {
+    return Math.floor(Math.random() * max);
+}
 
-let dialPosition = 0;
-let dialStartPosition = 0;
-let dialStartTime = 0;
+function makeCodes() {
+    codes = Array.from({ length: 4 }, () =>
+        Array.from({ length: 5 }, () => randomInt(10))
+    );
+}
 
-let animationFrame = null;
-let nextRoundTimeout = null;
-
-let sessionStartTime = 0;
-
-let saveInProgress = false;
-
-
-// ============================================
-// PAGE ELEMENTS
-// ============================================
-
-const setupScreen = document.getElementById("lock-setup");
-const gameScreen = document.getElementById("lock-game");
-const resultsScreen = document.getElementById("lock-results");
-
-const startButton = document.getElementById("start-game");
-const stopButton = document.getElementById("stop-dial");
-const finishButton = document.getElementById("finish-session");
-const playAgainButton = document.getElementById("play-again");
-
-const dialNumber = document.getElementById("dial-number");
-
-const lockFeedback = document.getElementById("lock-feedback");
-
-const lockStatusText = document.getElementById("lock-status-text");
-const statusIndicator = document.getElementById("status-indicator");
-
-
-// ============================================
-// MODE SELECTION
-// ============================================
-
-document.querySelectorAll("[data-mode]").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        if (gameActive) {
-            return;
-        }
-
-        selectedMode = button.dataset.mode;
-
-        document.querySelectorAll("[data-mode]").forEach(item => {
-            item.classList.remove("selected");
+function setMode() {
+    document.querySelectorAll(".mode-card").forEach(button => {
+        button.addEventListener("click", () => {
+            document.querySelectorAll(".mode-card").forEach(card => card.classList.remove("selected"));
+            button.classList.add("selected");
+            selectedMode = button.dataset.mode;
         });
-
-        button.classList.add("selected");
-
     });
+}
 
-});
-
-
-// ============================================
-// DIFFICULTY SELECTION
-// ============================================
-
-document.querySelectorAll("[data-difficulty]").forEach(button => {
-
-    button.addEventListener("click", () => {
-
-        if (gameActive) {
-            return;
-        }
-
-        selectedDifficulty = button.dataset.difficulty;
-
-        document.querySelectorAll("[data-difficulty]").forEach(item => {
-            item.classList.remove("selected");
-        });
-
-        button.classList.add("selected");
-
-        document.getElementById("difficulty-description").textContent =
-            difficultySettings[selectedDifficulty].description;
-
-    });
-
-});
-
-
-// ============================================
-// START GAME
-// ============================================
+function playTone(type) {
+    if (!soundEnabled) return;
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    const audio = new AudioContextClass();
+    const oscillator = audio.createOscillator();
+    const gain = audio.createGain();
+    oscillator.connect(gain);
+    gain.connect(audio.destination);
+    oscillator.type = "sine";
+    oscillator.frequency.value = type === "hit" ? 720 : type === "miss" ? 170 : 440;
+    gain.gain.setValueAtTime(0.08, audio.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.14);
+    oscillator.start();
+    oscillator.stop(audio.currentTime + 0.15);
+    oscillator.onended = () => audio.close();
+}
 
 function startGame() {
+    cancelAnimationFrame(animationId);
+    clearInterval(elapsedTimer);
 
-    resetGame();
-
-    gameActive = true;
-
-    sessionStartTime = Date.now();
-
-    totalRounds = lockSettings[selectedMode].rounds;
-
-    setupScreen.hidden = true;
-    resultsScreen.hidden = true;
-    gameScreen.hidden = false;
-
-    finishButton.disabled = true;
-
-    updateScoreboard();
-
-    startRound();
-
-}
-
-
-// ============================================
-// RESET GAME
-// ============================================
-
-function resetGame() {
-
-    cancelAnimationFrame(animationFrame);
-    clearTimeout(nextRoundTimeout);
-
-    gameActive = false;
-    dialRunning = false;
-
-    currentRound = 0;
-
+    selectedDifficulty = document.getElementById("difficulty").value;
+    soundEnabled = document.getElementById("sound-enabled").checked;
+    stage = 0;
+    digitIndex = 0;
     score = 0;
-    correctAnswers = 0;
-
-    currentStreak = 0;
+    hits = 0;
+    misses = 0;
+    completedLocks = 0;
+    streak = 0;
     bestStreak = 0;
-
     totalResponseTime = 0;
+    attempts = [];
+    lastSaved = false;
+    makeCodes();
 
-    targetCombination = [];
-    playerCombination = [];
+    setupScreen.classList.add("hidden");
+    resultsScreen.classList.add("hidden");
+    playingScreen.classList.remove("hidden");
+    document.getElementById("mode-title").textContent =
+        selectedMode.charAt(0).toUpperCase() + selectedMode.slice(1) + " Mode";
 
-    currentTargetIndex = 0;
-
-    roundResults = [];
-
-    saveInProgress = false;
-
-    stopButton.disabled = true;
-    finishButton.disabled = true;
-
-    document.getElementById("save-status").textContent =
-        "Saving your results...";
-
-    document.getElementById("save-status").className =
-        "save-status";
-
+    startTime = performance.now();
+    elapsedTimer = setInterval(updateElapsed, 250);
+    prepareStage();
+    running = true;
+    lastFrame = performance.now();
+    attemptStart = lastFrame;
+    animationId = requestAnimationFrame(animate);
 }
 
-
-// ============================================
-// START A ROUND
-// ============================================
-
-function startRound() {
-
-    if (!gameActive) {
-        return;
-    }
-
-    if (selectedMode !== "practice" && currentRound >= totalRounds) {
-        finishGame();
-        return;
-    }
-
-    currentRound++;
-
-    targetCombination = generateCombination();
-
-    playerCombination = [];
-
-    currentTargetIndex = 0;
-
-    roundResponseTime = 0;
-
-    document.getElementById("round-display").textContent =
-        selectedMode === "practice"
-            ? currentRound
-            : currentRound + " / " + totalRounds;
-
-    updateScoreboard();
-
-    resetProgressSteps();
-
-    displayCombination();
-
+function prepareStage() {
+    const settings = stageSettings[selectedDifficulty][stage];
+    currentWindow = settings.window;
+    currentSpeed = settings.speed;
+    patternTime = 0;
+    patternDirection = 1;
+    jumpIndex = 0;
+    jumpTimer = 0;
+    rotorAngle = Math.random() * TAU;
+    digitIndex = 0;
+    updateInterface();
+    setFeedback("Wait for the highlight to reach the target digit.", "");
 }
 
-
-// ============================================
-// GENERATE THREE RANDOM NUMBERS
-// ============================================
-
-function generateCombination() {
-
-    const combination = [];
-
-    while (combination.length < 3) {
-
-        const number = Math.floor(Math.random() * 100);
-
-        if (!combination.includes(number)) {
-            combination.push(number);
-        }
-
-    }
-
-    return combination;
-
-}
-
-
-// ============================================
-// DISPLAY COMBINATION
-// ============================================
-
-function displayCombination() {
-
-    document.getElementById("target-one").textContent =
-        formatNumber(targetCombination[0]);
-
-    document.getElementById("target-two").textContent =
-        formatNumber(targetCombination[1]);
-
-    document.getElementById("target-three").textContent =
-        formatNumber(targetCombination[2]);
-
-
-    document.getElementById("combination-instruction").textContent =
-        "Memorise this combination";
-
-    document.getElementById("combination-hint").textContent =
-        "The combination will disappear shortly.";
-
-    lockFeedback.textContent = "Memorise the three numbers.";
-    lockFeedback.className = "lock-feedback";
-
-    updateStatus("MEMORISE THE COMBINATION", "warning");
-
-    stopButton.disabled = true;
-
-    dialNumber.textContent = "--";
-
-
-    // Give the player time to memorise the combination.
-
-    const memoryTime = selectedMode === "learning" ? 5000 : 3000;
-
-    nextRoundTimeout = setTimeout(() => {
-
-        if (!gameActive) {
-            return;
-        }
-
-        hideCombination();
-
-        startDial();
-
-    }, memoryTime);
-
-}
-
-
-// ============================================
-// HIDE COMBINATION
-// ============================================
-
-function hideCombination() {
-
-    document.getElementById("target-one").textContent = "??";
-    document.getElementById("target-two").textContent = "??";
-    document.getElementById("target-three").textContent = "??";
-
-    document.getElementById("combination-instruction").textContent =
-        "Unlock the combination";
-
-    document.getElementById("combination-hint").textContent =
-        "Remember the numbers and enter them in order.";
-
-}
-
-
-// ============================================
-// START MOVING DIAL
-// ============================================
-
-function startDial() {
-
-    if (!gameActive) {
-        return;
-    }
-
-    const settings = difficultySettings[selectedDifficulty];
-
-    dialPosition = Math.random() * 100;
-
-    dialStartPosition = dialPosition;
-
-    dialStartTime = performance.now();
-
-    roundStartTime = dialStartTime;
-
-    dialRunning = true;
-
-    stopButton.disabled = false;
-
-    lockFeedback.textContent =
-        "Find the first number and stop the dial.";
-
-    lockFeedback.className = "lock-feedback";
-
-    updateStatus("DIAL ACTIVE - STOP AT THE TARGET", "active");
-
-    document.getElementById("dial-number").textContent =
-        formatNumber(Math.floor(dialPosition));
-
-    animateDial();
-
-}
-
-
-// ============================================
-// ANIMATE DIAL
-// ============================================
-
-function animateDial() {
-
-    if (!dialRunning || !gameActive) {
-        return;
-    }
-
-    const settings = difficultySettings[selectedDifficulty];
-
-    const currentTime = performance.now();
-
-    const elapsedSeconds = (currentTime - dialStartTime) / 1000;
-
-    dialPosition =
-        (dialStartPosition + elapsedSeconds * settings.speed) % 100;
-
-    const displayedNumber = Math.floor(dialPosition);
-
-    dialNumber.textContent = formatNumber(displayedNumber);
-
-    animationFrame = requestAnimationFrame(animateDial);
-
-}
-
-
-// ============================================
-// STOP DIAL
-// ============================================
-
-function stopDial() {
-
-    if (!dialRunning || !gameActive) {
-        return;
-    }
-
-    dialRunning = false;
-
-    cancelAnimationFrame(animationFrame);
-
-    const settings = difficultySettings[selectedDifficulty];
-
-    const stoppedNumber = Math.floor(dialPosition);
-
-    const targetNumber = targetCombination[currentTargetIndex];
-
-    const difference = circularDistance(
-        stoppedNumber,
-        targetNumber
-    );
-
-    playerCombination.push(stoppedNumber);
-
-    stopButton.disabled = true;
-
-
-    // Check whether the player stopped close enough.
-
-    if (difference <= settings.tolerance) {
-
-        successfulStop();
-
-    } else {
-
-        failedStop(stoppedNumber, targetNumber);
-
-    }
-
-}
-
-
-// ============================================
-// CIRCULAR DISTANCE
-// Handles the 99-to-00 boundary.
-// ============================================
-
-function circularDistance(first, second) {
-
-    const difference = Math.abs(first - second);
-
-    return Math.min(difference, 100 - difference);
-
-}
-
-
-// ============================================
-// SUCCESSFUL POSITION
-// ============================================
-
-function successfulStop() {
-
-    const currentStep = currentTargetIndex + 1;
-
-    const stepElement =
-        document.getElementById("step-" + numberToWord(currentStep));
-
-    stepElement.classList.add("completed");
-
-    lockFeedback.textContent =
-        "Correct! Position " + currentStep + " unlocked.";
-
-    lockFeedback.className = "lock-feedback success";
-
-    updateStatus("POSITION " + currentStep + " UNLOCKED", "active");
-
-
-    currentTargetIndex++;
-
-
-    // All three numbers have been entered.
-
-    if (currentTargetIndex >= 3) {
-
-        completeRound(true);
-
-        return;
-
-    }
-
-
-    updateActiveStep();
-
-    lockFeedback.textContent =
-        "Correct! Now find position " + (currentTargetIndex + 1) + ".";
-
-
-  
-    nextRoundTimeout = setTimeout(() => {
-
-        if (!gameActive) {
-            return;
-        }
-
-        // Restart the dial from its current position.
-
-        dialStartPosition = dialPosition;
-        dialStartTime = performance.now();
-
-        dialRunning = true;
-
-        stopButton.disabled = false;
-
-        lockFeedback.textContent =
-            "Find the next number and stop the dial.";
-
-        updateStatus("DIAL ACTIVE - STOP AT THE TARGET", "active");
-
-        animateDial();
-
-    }, 350);
- 
-
-
-}
-
-
-// ============================================
-// FAILED POSITION
-// ============================================
-
-function failedStop(stoppedNumber, targetNumber) {
-
-    lockFeedback.textContent =
-        "Incorrect! You stopped at " +
-        formatNumber(stoppedNumber) + ".";
-
-    lockFeedback.className = "lock-feedback error";
-
-    updateStatus("COMBINATION FAILED", "warning");
-
-    if (selectedMode !== "assessment") {
-
-        document.getElementById("combination-hint").textContent =
-            "The correct combination was " +
-            targetCombination.map(formatNumber).join(" - ");
-
-    }
-
-    completeRound(false);
-
-}
-
-
-// ============================================
-// COMPLETE ROUND
-// ============================================
-
-function completeRound(success) {
-
-    if (!gameActive) {
-        return;
-    }
-
-    dialRunning = false;
-
-    cancelAnimationFrame(animationFrame);
-
-    clearTimeout(nextRoundTimeout);
-
-    stopButton.disabled = true;
-
-    roundResponseTime =
-        (performance.now() - roundStartTime) / 1000;
-
-    totalResponseTime += roundResponseTime;
-
-
-    if (success) {
-
-        correctAnswers++;
-
-        currentStreak++;
-
-        bestStreak = Math.max(bestStreak, currentStreak);
-
-
-        // Base score plus a speed bonus.
-
-        const speedBonus = Math.max(
-            0,
-            Math.round(30 - roundResponseTime * 2)
-        );
-
-        const streakBonus = Math.min(
-            (currentStreak - 1) * 5,
-            25
-        );
-
-        score += 100 + speedBonus + streakBonus;
-
-        lockFeedback.textContent =
-            "Vault unlocked! +" +
-            (100 + speedBonus + streakBonus) + " points.";
-
-        lockFeedback.className = "lock-feedback success";
-
-        updateStatus("VAULT UNLOCKED", "active");
-
-    } else {
-
-        currentStreak = 0;
-
-    }
-
-
-    // Save individual round information.
-
-    roundResults.push({
-
-        symbols: targetCombination.map(formatNumber),
-
-        prediction: playerCombination.map(formatNumber).join("-"),
-
-        outcome: targetCombination.map(formatNumber).join("-"),
-
-        correct: success,
-
-        responseTime: roundResponseTime
-
+function updateInterface() {
+    document.getElementById("stage-label").textContent = `STAGE ${stage + 1} / 4`;
+    document.getElementById("digit-label").textContent = `DIGIT ${digitIndex + 1} / 5`;
+    document.getElementById("score").textContent = score;
+    document.getElementById("stage-progress").style.width =
+        `${((stage * 5 + digitIndex) / 20) * 100}%`;
+
+    document.querySelectorAll(".stage-light").forEach((light, index) => {
+        light.classList.toggle("active", index === stage);
+        light.classList.toggle("complete", index < stage);
     });
 
+    const code = codes[stage];
+    const codeElement = document.getElementById("lock-code");
+    codeElement.innerHTML = "";
+    code.forEach((digit, index) => {
+        const span = document.createElement("span");
+        span.textContent = index <= digitIndex ? digit : "–";
+        if (index < digitIndex) span.classList.add("done");
+        codeElement.appendChild(span);
+    });
 
-    updateScoreboard();
+    const status = document.getElementById("lock-status");
+    status.textContent = "LOCKED";
+    status.classList.remove("unlocked");
+    document.getElementById("target-hint").textContent =
+        selectedMode === "assessment" ? "ENTER THE NEXT DIGIT" : `NEXT DIGIT: ${code[digitIndex]}`;
+}
 
-    finishButton.disabled = false;
+function updateElapsed() {
+    const seconds = Math.floor((performance.now() - startTime) / 1000);
+    const mins = String(Math.floor(seconds / 60)).padStart(2, "0");
+    const secs = String(seconds % 60).padStart(2, "0");
+    document.getElementById("elapsed-time").textContent = `${mins}:${secs}`;
+}
 
+function setFeedback(message, type) {
+    const element = document.getElementById("lock-feedback");
+    element.textContent = message;
+    element.className = "lock-feedback" + (type ? ` ${type}` : "");
+}
 
-    if (!success && selectedMode === "learning") {
+function getVelocity(dt) {
+    const settings = stageSettings[selectedDifficulty][stage];
+    const base = currentSpeed * 1.42;
+    patternTime += dt;
 
-        lockFeedback.textContent +=
-            " Correct combination: " +
-            targetCombination.map(formatNumber).join(" - ");
-
+    switch (settings.pattern) {
+        case "steady":
+            return base;
+        case "variable":
+            // Smooth acceleration and deceleration around the dial.
+            return base * (0.30 + 0.95 * (0.5 + 0.5 * Math.sin(patternTime * 1.65)));
+        case "bouncing":
+            // Speed changes and direction reversals.
+            if (Math.sin(patternTime * 1.15) < -0.88) patternDirection = -1;
+            else if (Math.sin(patternTime * 1.15) > 0.88) patternDirection = 1;
+            return base * (0.45 + 0.75 * Math.abs(Math.sin(patternTime * 1.9))) * patternDirection;
+        case "jumps":
+            // Short bursts between separated positions, then a moving sweep.
+            return base * (0.65 + 0.65 * Math.sin(patternTime * 2.4));
+        case "chaotic":
+            return base * (0.18 + 1.35 * (0.5 + 0.5 * Math.sin(patternTime * 2.7 + Math.sin(patternTime * 0.8) * 2)));
+        default:
+            return base;
     }
+}
 
+function animate(timestamp) {
+    if (!running) return;
+    const dt = Math.min((timestamp - lastFrame) / 1000, 0.04);
+    lastFrame = timestamp;
 
-    // Continue after a short delay.
+    const settings = stageSettings[selectedDifficulty][stage];
+    const pattern = settings.pattern;
 
-    nextRoundTimeout = setTimeout(() => {
-
-        if (!gameActive) {
-            return;
-        }
-
-        if (selectedMode !== "practice" &&
-            currentRound >= totalRounds) {
-
-            finishGame();
-
+    if (pattern === "jumps") {
+        jumpTimer += dt;
+        if (jumpTimer > Math.max(0.16, 0.55 / currentSpeed)) {
+            jumpTimer = 0;
+            jumpIndex++;
+            rotorAngle += (Math.PI / 2) + (Math.random() * Math.PI * 0.9);
         } else {
+            rotorAngle += getVelocity(dt) * dt;
+        }
+    } else {
+        rotorAngle += getVelocity(dt) * dt;
+    }
 
-            startRound();
+    drawDial();
+    animationId = requestAnimationFrame(animate);
+}
 
+function drawDial() {
+    const w = dial.width;
+    const h = dial.height;
+    const cx = w / 2;
+    const cy = h / 2;
+    const outer = 226;
+    const inner = 145;
+    const digitRadius = 184;
+    const settings = stageSettings[selectedDifficulty][stage];
+    const segmentWidth = (TAU / DIGIT_COUNT) * currentWindow;
+
+    ctx.clearRect(0, 0, w, h);
+
+    // Outer housing.
+    ctx.beginPath();
+    ctx.arc(cx, cy, outer + 12, 0, TAU);
+    ctx.fillStyle = "#29293c";
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(cx, cy, outer, 0, TAU);
+    ctx.fillStyle = "#bfc2ce";
+    ctx.fill();
+
+    // Ten alternating dial panels.
+    for (let i = 0; i < DIGIT_COUNT; i++) {
+        const a = BASE_ANGLE + i * TAU / DIGIT_COUNT;
+        ctx.beginPath();
+        ctx.moveTo(cx + Math.cos(a) * inner, cy + Math.sin(a) * inner);
+        ctx.arc(cx, cy, outer - 3, a, a + TAU / DIGIT_COUNT);
+        ctx.arc(cx, cy, inner, a + TAU / DIGIT_COUNT, a, true);
+        ctx.closePath();
+        ctx.fillStyle = i % 2 === 0 ? "#e7e8ee" : "#d6d8e1";
+        ctx.fill();
+        ctx.strokeStyle = "#a2a5b2";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    }
+
+    // The moving selectable window.
+    const start = rotorAngle - segmentWidth / 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, outer - 3, start, start + segmentWidth);
+    ctx.arc(cx, cy, inner, start + segmentWidth, start, true);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(49, 54, 72, 0.82)";
+    ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,0.75)";
+    ctx.lineWidth = 3;
+    ctx.stroke();
+
+    // Digit labels.
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "bold 35px Consolas, monospace";
+    for (let i = 0; i < DIGIT_COUNT; i++) {
+        const angle = BASE_ANGLE + i * TAU / DIGIT_COUNT;
+        const x = cx + Math.cos(angle) * digitRadius;
+        const y = cy + Math.sin(angle) * digitRadius;
+        ctx.fillStyle = "#252735";
+        ctx.fillText(String(i), x, y + 2);
+    }
+
+    // Inner rim.
+    ctx.beginPath();
+    ctx.arc(cx, cy, inner - 5, 0, TAU);
+    ctx.strokeStyle = "#777b8d";
+    ctx.lineWidth = 9;
+    ctx.stroke();
+}
+
+function getHighlightedDigit() {
+    // Find the digit nearest the centre of the moving window.
+    let angle = ((rotorAngle - BASE_ANGLE) % TAU + TAU) % TAU;
+    return Math.round(angle / (TAU / DIGIT_COUNT)) % DIGIT_COUNT;
+}
+
+function isDigitInsideWindow(digit) {
+    // The target must actually sit inside the highlighted arc.
+    const digitAngle = BASE_ANGLE + digit * (TAU / DIGIT_COUNT);
+    const halfWindow = ((TAU / DIGIT_COUNT) * currentWindow) / 2;
+    let difference = Math.atan2(
+        Math.sin(rotorAngle - digitAngle),
+        Math.cos(rotorAngle - digitAngle)
+    );
+    return Math.abs(difference) <= halfWindow;
+}
+
+function stopRotor() {
+    if (!running || waitingForFeedback) return;
+    const responseTime = (performance.now() - attemptStart) / 1000;
+    const chosenDigit = getHighlightedDigit();
+    const requiredDigit = codes[stage][digitIndex];
+    const correct = isDigitInsideWindow(requiredDigit);
+
+    attempts.push({
+        symbols: [stage + 1, digitIndex + 1, requiredDigit, chosenDigit],
+        prediction: String(chosenDigit),
+        outcome: String(requiredDigit),
+        correct: correct,
+        responseTime: responseTime
+    });
+    totalResponseTime += responseTime;
+
+    if (correct) {
+        hits++;
+        score += Math.round(100 + Math.max(0, 80 - responseTime * 20));
+        streak++;
+        bestStreak = Math.max(bestStreak, streak);
+        playTone("hit");
+        digitIndex++;
+        updateInterface();
+
+        if (digitIndex >= 5) {
+            completedLocks++;
+            document.getElementById("lock-status").textContent = "UNLOCKED";
+            document.getElementById("lock-status").classList.add("unlocked");
+            document.getElementById("target-hint").textContent = "LOCK OPEN";
+            if (selectedMode === "learning") {
+                setFeedback(`Correct. Stage ${stage + 1} unlocked.`, "good");
+            } else {
+                setFeedback("Lock unlocked.", "good");
+            }
+            waitingForFeedback = true;
+            setTimeout(() => {
+                waitingForFeedback = false;
+                if (stage === 3) finishGame();
+                else {
+                    stage++;
+                    prepareStage();
+                    attemptStart = performance.now();
+                }
+            }, selectedMode === "assessment" ? 450 : 850);
+            return;
         }
 
-    }, 1800);
-
-}
-
-
-// ============================================
-// UPDATE SCOREBOARD
-// ============================================
-
-function updateScoreboard() {
-
-    document.getElementById("score-display").textContent =
-        score;
-
-    document.getElementById("streak-display").textContent =
-        currentStreak;
-
-    document.getElementById("round-display").textContent =
-        selectedMode === "practice"
-            ? currentRound
-            : currentRound + " / " + totalRounds;
-
-}
-
-
-// ============================================
-// PROGRESS STEPS
-// ============================================
-
-function resetProgressSteps() {
-
-    ["one", "two", "three"].forEach(step => {
-
-        const element = document.getElementById("step-" + step);
-
-        element.classList.remove("active", "completed");
-
-    });
-
-    document.getElementById("step-one").classList.add("active");
-
-}
-
-
-function updateActiveStep() {
-
-    ["one", "two", "three"].forEach((step, index) => {
-
-        const element = document.getElementById("step-" + step);
-
-        element.classList.remove("active");
-
-        if (index === currentTargetIndex) {
-            element.classList.add("active");
+        if (selectedMode === "learning") setFeedback(`Correct — ${chosenDigit} secured.`, "good");
+        else setFeedback("Correct digit.", "good");
+    } else {
+        misses++;
+        streak = 0;
+        playTone("miss");
+        digitIndex = 0; // A miss resets the current lock's full five-digit code.
+        updateInterface();
+        if (selectedMode === "learning") {
+            setFeedback(`Missed. You stopped on ${chosenDigit}; the target was ${requiredDigit}. This lock has reset.`, "bad");
+        } else {
+            setFeedback("Miss — this lock has reset.", "bad");
         }
+    }
 
+    waitingForFeedback = true;
+    running = false;
+    cancelAnimationFrame(animationId);
+    drawDial();
+
+    const delay = selectedMode === "assessment" ? 280 : 850;
+    setTimeout(() => {
+        if (!playingScreen.classList.contains("hidden")) {
+            waitingForFeedback = false;
+            running = true;
+            lastFrame = performance.now();
+            attemptStart = lastFrame;
+            animationId = requestAnimationFrame(animate);
+        }
+    }, delay);
+}
+
+function skipLock() {
+    if (!running && !waitingForFeedback) return;
+    running = false;
+    waitingForFeedback = false;
+    cancelAnimationFrame(animationId);
+    attempts.push({
+        symbols: [stage + 1, "skip", ...codes[stage]],
+        prediction: "skip",
+        outcome: codes[stage].join(""),
+        correct: false,
+        responseTime: 0
     });
-
-}
-
-
-// ============================================
-// STATUS INDICATOR
-// ============================================
-
-function updateStatus(message, type) {
-
-    lockStatusText.textContent = message;
-
-    statusIndicator.className = "status-dot";
-
-    if (type) {
-        statusIndicator.classList.add(type);
+    streak = 0;
+    if (stage === 3) {
+        finishGame();
+    } else {
+        stage++;
+        prepareStage();
+        running = true;
+        lastFrame = performance.now();
+        attemptStart = lastFrame;
+        animationId = requestAnimationFrame(animate);
+        setFeedback("Lock skipped. Moving to the next stage.", "");
     }
-
 }
-
-
-// ============================================
-// NUMBER HELPERS
-// ============================================
-
-function formatNumber(number) {
-
-    return String(number).padStart(2, "0");
-
-}
-
-
-function numberToWord(number) {
-
-    const words = ["one", "two", "three"];
-
-    return words[number - 1];
-
-}
-
-
-// ============================================
-// FINISH SESSION
-// ============================================
-
-function finishSession() {
-
-    if (!gameActive || saveInProgress) {
-        return;
-    }
-
-    if (roundResults.length === 0) {
-
-        lockFeedback.textContent =
-            "Complete at least one round before finishing.";
-
-        return;
-
-    }
-
-    finishGame();
-
-}
-
-
-// ============================================
-// FINISH GAME AND DISPLAY RESULTS
-// ============================================
 
 async function finishGame() {
+    running = false;
+    waitingForFeedback = false;
+    cancelAnimationFrame(animationId);
+    clearInterval(elapsedTimer);
 
-    if (!gameActive || saveInProgress) {
-        return;
-    }
+    playingScreen.classList.add("hidden");
+    resultsScreen.classList.remove("hidden");
 
-    gameActive = false;
-    dialRunning = false;
-
-    saveInProgress = true;
-
-    cancelAnimationFrame(animationFrame);
-    clearTimeout(nextRoundTimeout);
-
-    stopButton.disabled = true;
-    finishButton.disabled = true;
-
-    gameScreen.hidden = true;
-    resultsScreen.hidden = false;
-
-
-    const completedRounds = roundResults.length;
-
-    const accuracy = completedRounds > 0
-        ? (correctAnswers / completedRounds) * 100
-        : 0;
-
-    const averageResponseTime = completedRounds > 0
-        ? totalResponseTime / completedRounds
-        : 0;
-
-    const elapsed = Math.round(
-        (Date.now() - sessionStartTime) / 1000
-    );
-
-
-    // Display final statistics.
+    const duration = Math.round((performance.now() - startTime) / 1000);
+    const avg = attempts.length ? totalResponseTime / attempts.length : 0;
+    const accuracy = attempts.length ? (hits / attempts.length) * 100 : 0;
 
     document.getElementById("results-title").textContent =
-        selectedMode === "assessment"
-            ? "Assessment complete!"
-            : "Vault challenge complete!";
-
+        completedLocks === 4 ? "All locks opened!" : "Challenge complete";
     document.getElementById("results-description").textContent =
-        "You completed " + completedRounds + " lock attempts.";
+        "Your Lock Game performance has been recorded below.";
+    document.getElementById("final-score").textContent = score;
+    document.getElementById("final-summary").textContent = `${hits} successful digits • ${completedLocks} of 4 locks opened • ${accuracy.toFixed(1)}% hit rate`;
+    document.getElementById("digits-hit").textContent = hits;
+    document.getElementById("miss-count").textContent = misses;
+    document.getElementById("locks-complete").textContent = `${completedLocks}/4`;
+    document.getElementById("average-time").textContent = `${avg.toFixed(2)}s`;
 
-    document.getElementById("result-score").textContent =
-        score;
-
-    document.getElementById("result-accuracy").textContent =
-        accuracy.toFixed(1) + "%";
-
-    document.getElementById("result-correct").textContent =
-        correctAnswers + " / " + completedRounds;
-
-    document.getElementById("result-reaction").textContent =
-        formatReactionTime(averageResponseTime * 1000);
-
-    document.getElementById("result-streak").textContent =
-        bestStreak;
-
-
-    // Show round-by-round summary.
-
-    const breakdown = document.getElementById("results-breakdown");
-
-    breakdown.innerHTML = "";
-
-    const summary = document.createElement("p");
-
-    summary.textContent =
-        "Difficulty: " + capitalise(selectedDifficulty) +
-        " | Mode: " + capitalise(selectedMode) +
-        " | Total time: " + elapsed + " seconds";
-
-    breakdown.appendChild(summary);
-
-
-    // Save results to Supabase.
-
+    if (lastSaved) return;
+    lastSaved = true;
     const saveStatus = document.getElementById("save-status");
 
-    saveStatus.textContent = "Saving your results...";
-    saveStatus.className = "save-status";
-
-
-    const saveResult = await saveGameSession({
-
+    const result = await saveGameSession({
         gameName: "Lock Game",
-
         mode: selectedMode,
-
         difficulty: selectedDifficulty,
-
-        totalRounds: completedRounds,
-
-        correctAnswers: correctAnswers,
-
+        totalRounds: attempts.length,
+        correctAnswers: hits,
         score: score,
-
-        averageResponseTime: averageResponseTime,
-
+        averageResponseTime: avg,
         bestStreak: bestStreak,
-
-        durationSeconds: elapsed,
-
-        rounds: roundResults
-
+        durationSeconds: duration,
+        rounds: attempts
     });
 
-
-    if (saveResult.success) {
-
-        saveStatus.textContent =
-            "Your results have been saved successfully.";
-
-        saveStatus.className = "save-status saved";
-
-    } else {
-
-        saveStatus.textContent =
-            "We couldn't save your results: " + saveResult.error;
-
-        saveStatus.className = "save-status failed";
-
-    }
-
-    saveInProgress = false;
-
+    saveStatus.textContent = result.success
+        ? "Results saved to your MindGrid statistics."
+        : "Your game finished, but the results could not be saved. Please check your connection and try again.";
 }
 
-
-// ============================================
-// REACTION TIME FORMATTING
-// ============================================
-
-function formatReactionTime(milliseconds) {
-
-    if (milliseconds < 1000) {
-        return Math.round(milliseconds) + " ms";
-    }
-
-    return (milliseconds / 1000).toFixed(2) + " s";
-
-}
-
-
-// ============================================
-// CAPITALISE TEXT
-// ============================================
-
-function capitalise(text) {
-
-    return text.charAt(0).toUpperCase() + text.slice(1);
-
-}
-
-
-// ============================================
-// EVENT LISTENERS
-// ============================================
-
-startButton.addEventListener("click", startGame);
-
-stopButton.addEventListener("click", stopDial);
-
-finishButton.addEventListener("click", finishSession);
-
-playAgainButton.addEventListener("click", () => {
-
-    resultsScreen.hidden = true;
-    setupScreen.hidden = false;
-
+document.getElementById("start-game").addEventListener("click", startGame);
+document.getElementById("stop-button").addEventListener("click", stopRotor);
+document.getElementById("skip-button").addEventListener("click", skipLock);
+document.getElementById("retry-game").addEventListener("click", () => {
+    resultsScreen.classList.add("hidden");
+    setupScreen.classList.remove("hidden");
 });
-
-
-// ============================================
-// KEYBOARD CONTROLS
-// SPACEBAR = STOP DIAL
-// ============================================
-
+dial.addEventListener("pointerdown", stopRotor);
+document.getElementById("sound-enabled").addEventListener("change", event => {
+    soundEnabled = event.target.checked;
+});
 document.addEventListener("keydown", event => {
-
-    if (event.code !== "Space") {
-        return;
+    if (event.code === "Space" && !playingScreen.classList.contains("hidden")) {
+        event.preventDefault();
+        stopRotor();
     }
-
-    if (event.repeat) {
-        return;
-    }
-
-    if (!gameActive || !dialRunning) {
-        return;
-    }
-
-    event.preventDefault();
-
-    stopDial();
-
 });
 
-
-// ============================================
-// AUTHENTICATION
-// ============================================
-
+setMode();
 checkGameAuthentication();
